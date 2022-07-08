@@ -1,0 +1,83 @@
+{
+  "runtime_id": 200,
+  "types": {
+    "Address": "AccountIdAddress",
+    "LookupSource": "AccountIdAddress",
+    "AccountInfo": "AccountInfoWithRefCount",
+    "FullIdentification": "()",
+    "Keys": {
+      "type": "struct",
+      "type_mapping": [
+         ["grandpa", "AccountId"],
+         ["babe", "AccountId"],
+         ["im_online", "AccountId"],
+         ["para_validator", "AccountId"],
+         ["para_assignment", "AccountId"],
+         ["authority_discovery", "AccountId"]
+      ]
+    }
+  },
+  "versioning": [
+    {
+      "runtime_range": [0, 9],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsTo257",
+        "RefCount": "u8"
+      }
+    },
+    {
+      "runtime_range": [10, null],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsFrom258",
+        "RefCount": "u32"
+      }
+    },
+    {
+      "runtime_range": [0, 12],
+      "types": {
+        "Keys": {
+          "type": "struct",
+          "type_mapping": [
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["authority_discovery", "AccountId"],
+             ["parachains", "AccountId"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [13, null],
+      "types": {
+        "Keys": {
+          "type": "struct",
+          "type_mapping": [
+             ["grandpa", "AccountId"],
+             ["babe", "AccountId"],
+             ["im_online", "AccountId"],
+             ["para_validator", "AccountId"],
+             ["para_assignment", "AccountId"],
+             ["authority_discovery", "AccountId"]
+          ]
+        }
+      }
+    },
+    {
+      "runtime_range": [0, 201],
+      "types": {
+        "Address": "AccountIdAddress",
+        "LookupSource": "AccountIdAddress",
+        "AccountInfo": "AccountInfoWithRefCount"
+      }
+    },
+    {
+      "runtime_range": [202, null],
+      "types": {
+        "Address": "MultiAddress",
+        "LookupSource": "MultiAddress",
+        "AccountInfo": "AccountInfoWithProviders"
+      }
+    }
+  ]
+}

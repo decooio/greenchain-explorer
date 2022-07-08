@@ -1,0 +1,89 @@
+<div class="column is-12">
+  <app-polkascan-header></app-polkascan-header>
+  <div *ngIf="contract$ | async as contract">
+    <section class="info-tiles">
+      <div class="card events-card">
+        <header class="card-header">
+          <p class="card-header-title">
+            {{ 'Contract-Detail.Contract' | translate }} "{{ contract.id }}"
+          </p>
+          <a class="card-header-icon" aria-label="more options">
+            <span class="icon"><i class="fa fa-file-contract fa-2x"></i></span>
+          </a>
+        </header>
+        <div class="card-table" *ngIf="contract">
+          <div class="content">
+            <table class="table is-fullwidth is-striped">
+              <tbody>
+                <tr *ngIf="info && info.name">
+                  <td width="20%">{{ "Contract-Detail.Name" | translate}}</td>
+                  <td>{{ info.name }}</td>
+                </tr>
+                <tr *ngIf="info && info.version">
+                  <td width="20%">{{ "Contract-Detail.Version" | translate}}</td>
+                  <td>{{ info.version }}</td>
+                </tr>
+                <tr *ngIf="info && info.authors">
+                  <td width="20%">{{ "Contract-Detail.Authors" | translate}}</td>
+                  <td>{{ info.authors }}</td>
+                </tr>
+                <tr *ngIf="contract.attributes.code_hash">
+                  <td width="20%">{{ (isDeployed? "Contract-List.Contract Code Hash" : "Contract-List.Code Hash") | translate}}</td>
+                  <td>{{ '0x' + contract.attributes.code_hash }}</td>
+                </tr>
+                <tr *ngIf="source && source.language">
+                  <td width="20%">{{ "Contract-Detail.Language" | translate}}</td>
+                  <td>{{ source.language }}</td>
+                </tr>
+                <tr *ngIf="source && source.compiler">
+                  <td width="20%">{{ "Contract-Detail.Compiler" | translate}}</td>
+                  <td>{{ source.compiler }}</td>
+                </tr>
+                <tr *ngIf="contract.attributes.symbol">
+                  <td width="20%">{{ "Contract-List.Symbol" | translate}}</td>
+                  <td>{{ contract.attributes.symbol }}</td>
+                </tr>
+                <tr *ngIf="contract.attributes.create_time">
+                  <td width="20%">{{ "Contract-List.Create Time" | translate}}</td>
+                  <td>{{ contract.attributes.create_time }}</td>
+                </tr>
+                <tr *ngIf="contract.attributes.address">
+                  <td width="20%">{{ "Contract-List.Address" | translate}}</td>
+                  <td>{{ contract.attributes.address }}</td>
+                </tr>
+                <tr *ngIf="contract.attributes.owner">
+                  <td width="20%">{{ "Contract-List.Owner" | translate}}</td>
+                  <td>{{ contract.attributes.owner }}</td>
+                </tr>
+                <tr>
+                  <td width="20%">{{ "Contract-Detail.Created at event" | translate}}</td>
+                  <td>{{ contract.attributes.created_at_event }}</td>
+                </tr>
+                <tr>
+                  <td width="20%">{{ 'Contract-Detail.Created at block' | translate }}</td>
+                  <td><a
+                      routerLink="{{ networkURLPrefix }}/block/{{ contract.attributes.created_at_block }}">{{ contract.attributes.created_at_block }}</a>
+                  </td>
+                </tr>
+                <!-- <tr>
+                  <td width="20%">{{ 'Contract-Detail.Verified source' | translate }}</td>
+                  <td>
+                    <pre *ngIf="contract.attributes.source">{{ contract.attributes.source }}</pre>
+                    <i *ngIf="!contract.attributes.source" class="fa fa-times" style="color: darkred"></i>
+                  </td>
+                </tr> -->
+                <tr *ngIf="contract.attributes.bytecode">
+                  <td width="20%">WASM binary</td>
+                  <td>
+                    <pre>{{ contract.attributes.bytecode }}</pre>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
