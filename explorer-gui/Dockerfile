@@ -4,8 +4,16 @@ FROM node:10-alpine as builder
 
 COPY explorer-gui/package.json explorer-gui/package-lock.json ./
 
-## Storing node modules on a separate layer will prevent unnecessary npm installs at each build
+# Install python2 & make & g++ &... for node-sass rebuild
+ENV PYTHONUNBUFFERED=1
+RUN apk add --no-cache python2 && \
+    python -m ensurepip && \
+    rm -r /usr/lib/python*/ensurepip && \
+    pip install --upgrade pip setuptools && \
+    rm -r /root/.cache
+RUN apk --no-cache add make gcc g++ musl-dev binutils autoconf automake libtool pkgconfig check-dev file patch
 
+## Storing node modules on a separate layer will prevent unnecessary npm installs at each build
 RUN npm ci && mkdir /ng-app && mv ./node_modules ./ng-app
 
 WORKDIR /ng-app

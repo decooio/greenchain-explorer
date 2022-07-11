@@ -12,16 +12,16 @@ RUN pip3 install --upgrade pip
 COPY ./harvester/requirements.txt /usr/src/app/requirements.txt
 
 # install requirements
-RUN pip3 install -r requirements.txt -i http://mirrors.aliyun.com/pypi/simple --trusted-host mirrors.aliyun.com
+RUN pip3 install -r requirements.txt
 
 
 # install requirements of local py-scale-codec
 COPY ./py-scale-codec/requirements.txt /usr/src/app/py-scale-codec-requirements.txt
-RUN pip3 install -r py-scale-codec-requirements.txt -i http://mirrors.aliyun.com/pypi/simple --trusted-host mirrors.aliyun.com
+RUN pip3 install -r py-scale-codec-requirements.txt
 
 # install requirements of local py-substrate-interface
 COPY ./py-substrate-interface/requirements.txt /usr/src/app/py-substrate-interface-requirements.txt
-RUN pip3 install -r py-substrate-interface-requirements.txt -i http://mirrors.aliyun.com/pypi/simple --trusted-host mirrors.aliyun.com
+RUN pip3 install -r py-substrate-interface-requirements.txt
 
 # add app
 COPY harvester /usr/src/app

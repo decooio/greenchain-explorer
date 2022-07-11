@@ -7,6 +7,7 @@ chardet==3.0.4
 decorator==4.4.0
 dictalchemy==0.1.2.7
 dogpile.cache==0.7.1
+ed25519==1.5.0
 falcon==1.4.1
 greenlet==0.4.15
 gunicorn==19.9.0

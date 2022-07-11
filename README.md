@@ -14,7 +14,7 @@ cd greenchain-explorer
 ```
 ### Step 3: During the first run let MySQL initialize (wait for about a minute)
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml up -d mysql
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up -d mysql
 ```
 ### Step 4: Logon to MySQL, and update root plugin to 'mysql_native_password'
 ```bash
@@ -22,7 +22,7 @@ alter user root@'%' identified with mysql_native_password by 'root';
 ```
 ### Step 5: Then build the other docker containers
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml up --build
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up --build
 ```
 
 ## Add custom types for Substrate Node Template
@@ -57,7 +57,7 @@ docker volume prune
 
 #### Step1: Start MySQL
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml up -d mysql
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up -d mysql
 ```
 
 #### Step2: Logon, drop and re-create database
@@ -68,14 +68,14 @@ CREATE DATABASE `polkascan` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_a
 
 #### Step3: Run harvester-api to let alembic migrate database
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml up harvester-api
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up harvester-api
 ```
 
 #### Step4: Restart MySQL and all services
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml down
-docker-compose -p greenchain -f docker-compose.greenchain.yml up -d mysql
-docker-compose -p greenchain -f docker-compose.greenchain.yml up --build
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml down
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up -d mysql
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up --build
 ```
 
 ### Option2: Rebuild MySQL image
@@ -99,7 +99,7 @@ docker volume rm greenchain_db-data
 
 #### Step4: Rebuild and start MySQL 
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml up -d mysql
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up -d mysql
 ```
 This will also create the default 'polkascan' database.
 
@@ -110,14 +110,14 @@ alter user root@'%' identified with mysql_native_password by 'root';
 
 #### Step5: Start harvester-api to let alembic migrate database
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml up harvester-api
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up harvester-api
 ```
 
 #### Step6: Restart all services
 ```bash
-docker-compose -p greenchain -f docker-compose.greenchain.yml down
-docker-compose -p greenchain -f docker-compose.greenchain.yml up -d mysql
-docker-compose -p greenchain -f docker-compose.greenchain.yml up --build
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml down
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up -d mysql
+docker-compose -p greenchain -f docker-compose.greenchain-local.yml up --build
 ```
 
 
