@@ -24,8 +24,7 @@ from app.processors.converters import PolkascanHarvesterService
 from app.resources.base import BaseResource
 
 from scalecodec.base import ScaleBytes, RuntimeConfiguration
-from scalecodec.metadata import MetadataDecoder
-from scalecodec.block import EventsDecoder, ExtrinsicsDecoder
+from scalecodec.types import Extrinsic
 
 from substrateinterface import SubstrateInterface
 from app.settings import SUBSTRATE_RPC_URL, SUBSTRATE_METADATA_VERSION
@@ -46,7 +45,9 @@ class ExtractMetadataResource(BaseResource):
             resp.status = falcon.HTTP_BAD_REQUEST
 
     def on_post(self, req, resp):
-        metadata = MetadataDecoder(ScaleBytes(req.media.get('result')))
+        metadata = RuntimeConfiguration().create_scale_object(
+            'MetadataVersioned', data=ScaleBytes(req.media.get('result'))
+        )
 
         resp.status = falcon.HTTP_200
         resp.media = metadata.process()
@@ -74,7 +75,7 @@ class ExtractExtrinsicsResource(BaseResource):
             result = []
 
             for extrinsic in extrinsics:
-                extrinsics_decoder = ExtrinsicsDecoder(ScaleBytes(extrinsic), metadata=metadata_decoder)
+                extrinsics_decoder = Extrinsic(ScaleBytes(extrinsic), metadata=metadata_decoder)
                 result.append(extrinsics_decoder.decode())
 
             resp.status = falcon.HTTP_201

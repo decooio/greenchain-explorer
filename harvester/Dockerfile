@@ -19,6 +19,16 @@ RUN pip3 install -r requirements.txt
 COPY ./py-scale-codec/requirements.txt /usr/src/app/py-scale-codec-requirements.txt
 RUN pip3 install -r py-scale-codec-requirements.txt
 
+# install rust for building wheel for `py-bip39-bindings<1,>=0.1.9`
+RUN apt-get update
+RUN apt-get install -y \
+    build-essential \
+    curl
+RUN apt-get update
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN rustup install nightly-2022-05-18 && rustup default nightly-2022-05-18 && rustup target add wasm32-unknown-unknown --toolchain nightly-2022-05-18
+
 # install requirements of local py-substrate-interface
 COPY ./py-substrate-interface/requirements.txt /usr/src/app/py-substrate-interface-requirements.txt
 RUN pip3 install -r py-substrate-interface-requirements.txt

@@ -31,7 +31,7 @@ from app.processors import NewSessionEventProcessor, Log, SlashEventProcessor, B
     ContractExecutionEventProcessor
 from scalecodec.base import ScaleBytes, ScaleDecoder, RuntimeConfiguration
 from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
-from scalecodec.block import ExtrinsicsDecoder
+from scalecodec.types import Extrinsic
 
 from app.processors.base import BaseService, ProcessorRegistry
 from scalecodec.type_registry import load_type_registry_file
@@ -247,7 +247,7 @@ class PolkascanHarvesterService(BaseService):
                     authoring_version=runtime_version_data["authoringVersion"],
                     count_call_functions=0,
                     count_events=0,
-                    count_modules=len(self.substrate.metadata_decoder.metadata.modules),
+                    count_modules=len(self.substrate.metadata_decoder.get_metadata().pallets),
                     count_storage_functions=0,
                     count_constants=0,
                     count_errors=0
@@ -255,10 +255,9 @@ class PolkascanHarvesterService(BaseService):
 
                 runtime.save(self.db_session)
 
-                print('store version to db', self.substrate.metadata_decoder.version)
+                # print('store version to db', self.substrate.metadata_decoder.version)
 
-                for module_index, module in enumerate(self.substrate.metadata_decoder.metadata.modules):
-
+                for module_index, module in enumerate(self.substrate.metadata_decoder.get_metadata().pallets):
                     if hasattr(module, 'index'):
                         module_index = module.index
 
@@ -622,7 +621,7 @@ class PolkascanHarvesterService(BaseService):
 
         for extrinsic in extrinsics_data:
 
-            extrinsics_decoder = ExtrinsicsDecoder(
+            extrinsics_decoder = Extrinsic(
                 data=ScaleBytes(extrinsic),
                 metadata=self.metadata_store[parent_spec_version]
             )
