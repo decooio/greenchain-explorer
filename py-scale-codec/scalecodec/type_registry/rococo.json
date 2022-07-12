@@ -1,82 +1,59 @@
 {
-  "runtime_id": 200,
+  "runtime_id": 9103,
   "types": {
-    "Address": "AccountIdAddress",
-    "LookupSource": "AccountIdAddress",
-    "AccountInfo": "AccountInfoWithRefCount",
+    "Address": "MultiAddress",
+    "LookupSource": "MultiAddress",
+    "AccountInfo": "AccountInfoWithTripleRefCount",
     "FullIdentification": "()",
-    "Keys": {
-      "type": "struct",
-      "type_mapping": [
-         ["grandpa", "AccountId"],
-         ["babe", "AccountId"],
-         ["im_online", "AccountId"],
-         ["para_validator", "AccountId"],
-         ["para_assignment", "AccountId"],
-         ["authority_discovery", "AccountId"]
-      ]
-    }
+    "Keys": "SessionKeys7B",
+    "CompactAssignments": "CompactAssignmentsFrom265",
+    "RawSolution": "RawSolutionWith24",
+    "AssetInstance": "AssetInstanceV0",
+    "MultiAsset": "MultiAssetV0",
+    "MultiLocation": "MultiLocationV0",
+    "Response": "ResponseV0",
+    "Xcm": "XcmV0",
+    "XcmOrder": "XcmOrderV0"
   },
   "versioning": [
     {
-      "runtime_range": [0, 9],
-      "types": {
-        "CompactAssignments": "CompactAssignmentsTo257",
-        "RefCount": "u8"
-      }
-    },
-    {
-      "runtime_range": [10, null],
-      "types": {
-        "CompactAssignments": "CompactAssignmentsFrom258",
-        "RefCount": "u32"
-      }
-    },
-    {
-      "runtime_range": [0, 12],
-      "types": {
-        "Keys": {
-          "type": "struct",
-          "type_mapping": [
-             ["grandpa", "AccountId"],
-             ["babe", "AccountId"],
-             ["im_online", "AccountId"],
-             ["authority_discovery", "AccountId"],
-             ["parachains", "AccountId"]
-          ]
-        }
-      }
-    },
-    {
-      "runtime_range": [13, null],
-      "types": {
-        "Keys": {
-          "type": "struct",
-          "type_mapping": [
-             ["grandpa", "AccountId"],
-             ["babe", "AccountId"],
-             ["im_online", "AccountId"],
-             ["para_validator", "AccountId"],
-             ["para_assignment", "AccountId"],
-             ["authority_discovery", "AccountId"]
-          ]
-        }
-      }
-    },
-    {
-      "runtime_range": [0, 201],
+      "runtime_range": [0, 200],
       "types": {
         "Address": "AccountIdAddress",
         "LookupSource": "AccountIdAddress",
-        "AccountInfo": "AccountInfoWithRefCount"
+        "AccountInfo": "AccountInfoWithDualRefCount"
       }
     },
     {
-      "runtime_range": [202, null],
+      "runtime_range": [201, null],
       "types": {
         "Address": "MultiAddress",
         "LookupSource": "MultiAddress",
-        "AccountInfo": "AccountInfoWithProviders"
+        "AccountInfo": "AccountInfoWithTripleRefCount"
+      }
+    },
+    {
+      "runtime_range": [0, 228],
+      "types": {
+        "Keys": "SessionKeys6"
+      }
+    },
+    {
+      "runtime_range": [229, null],
+      "types": {
+        "Keys": "SessionKeys7B"
+      }
+    },
+    {
+      "runtime_range": [0, 9009],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsFrom258"
+      }
+    },
+    {
+      "runtime_range": [9010, null],
+      "types": {
+        "CompactAssignments": "CompactAssignmentsFrom265"
       }
     }
   ]

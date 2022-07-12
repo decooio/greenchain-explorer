@@ -15,8 +15,10 @@
 # limitations under the License.
 
 import unittest
+from unittest.mock import MagicMock
 
 from substrateinterface import SubstrateInterface
+from substrateinterface.exceptions import StorageFunctionNotFound
 from test import settings
 
 
@@ -47,6 +49,7 @@ class QueryTestCase(unittest.TestCase):
 
         self.assertEqual(7673, result.value['nonce'])
         self.assertEqual(637747267365404068, result.value['data']['free'])
+        self.assertEqual(result.meta_info['result_found'], True)
 
     def test_system_account_non_existing(self):
         result = self.kusama_substrate.query(
@@ -55,7 +58,57 @@ class QueryTestCase(unittest.TestCase):
             params=['GSEX8kR4Kz5UZGhvRUCJG93D5hhTAoVZ5tAe6Zne7V42DSi']
         )
 
-        self.assertIsNone(result)
+        self.assertEqual(
+            {
+                'nonce': 0, 'consumers': 0, 'providers': 0, 'sufficients': 0,
+                'data': {
+                    'free': 0, 'reserved': 0, 'misc_frozen': 0, 'fee_frozen': 0
+                }
+            }, result.value)
+
+    def test_non_existing_query(self):
+        with self.assertRaises(StorageFunctionNotFound) as cm:
+            self.kusama_substrate.query("Unknown", "StorageFunction")
+
+        self.assertEqual('Storage function "Unknown.StorageFunction" not found', str(cm.exception))
+
+    def test_modifier_default_result(self):
+        result = self.kusama_substrate.query(
+            module='Staking',
+            storage_function='HistoryDepth',
+            block_hash='0x4b313e72e3a524b98582c31cd3ff6f7f2ef5c38a3c899104a833e468bb1370a2'
+        )
+
+        self.assertEqual(84, result.value)
+        self.assertEqual(result.meta_info['result_found'], False)
+
+    def test_modifier_option_result(self):
+
+        result = self.kusama_substrate.query(
+            module='Identity',
+            storage_function='IdentityOf',
+            params=["DD6kXYJPHbPRbBjeR35s1AR7zDh7W2aE55EBuDyMorQZS2a"],
+            block_hash='0x4b313e72e3a524b98582c31cd3ff6f7f2ef5c38a3c899104a833e468bb1370a2'
+        )
+
+        self.assertIsNone(result.value)
+        self.assertEqual(result.meta_info['result_found'], False)
+
+    def test_identity_hasher(self):
+        result = self.kusama_substrate.query("Claims", "Claims", ["0x00000a9c44f24e314127af63ae55b864a28d7aee"])
+        self.assertEqual(45880000000000, result.value)
+
+    def test_well_known_keys_result(self):
+        result = self.kusama_substrate.query("Substrate", "Code")
+        self.assertIsNotNone(result.value)
+
+    def test_well_known_keys_default(self):
+        result = self.kusama_substrate.query("Substrate", "HeapPages")
+        self.assertEqual(0, result.value)
+
+    def test_well_known_keys_not_found(self):
+        with self.assertRaises(StorageFunctionNotFound):
+            self.kusama_substrate.query("Substrate", "Unknown")
 
 
 if __name__ == '__main__':

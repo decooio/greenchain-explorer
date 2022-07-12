@@ -13,10 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 import unittest
 
-from scalecodec.type_registry import load_type_registry_preset
+from scalecodec import ScaleBytes
+from scalecodec.type_registry import load_type_registry_file
 from substrateinterface import SubstrateInterface, Keypair, ExtrinsicReceipt
 from substrateinterface.exceptions import SubstrateRequestException
 from test import settings
@@ -38,61 +39,38 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
             type_registry_preset='polkadot'
         )
 
-    def test_compatibility_polkadot_runtime(self):
-        type_reg = load_type_registry_preset("polkadot")
-
-        runtime_data = self.polkadot_substrate.rpc_request('state_getRuntimeVersion', [])
-        self.assertLessEqual(
-            runtime_data['result']['specVersion'], type_reg.get('runtime_id'), 'Current runtime is incompatible'
+        module_path = os.path.dirname(__file__)
+        cls.metadata_fixture_dict = load_type_registry_file(
+            os.path.join(module_path, 'fixtures', 'metadata_hex.json')
         )
 
-    def test_compatibility_kusama_runtime(self):
-        type_reg = load_type_registry_preset("kusama")
-
-        runtime_data = self.kusama_substrate.rpc_request('state_getRuntimeVersion', [])
-        self.assertLessEqual(
-            runtime_data['result']['specVersion'], type_reg.get('runtime_id'), 'Current runtime is incompatible'
-        )
-
-    def test_create_balance_transfer(self):
         # Create new keypair
         mnemonic = Keypair.generate_mnemonic()
-        keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=2)
+        cls.keypair = Keypair.create_from_mnemonic(mnemonic)
 
-        for substrate in [self.kusama_substrate, self.polkadot_substrate]:
+    def test_create_extrinsic_metadata_v14(self):
 
-            # Create balance transfer call
-            call = substrate.compose_call(
-                call_module='Balances',
-                call_function='transfer',
-                call_params={
-                    'dest': 'EaG2CRhJWPb7qmdcJvy3LiWdh26Jreu9Dx6R1rXxPmYXoDk',
-                    'value': 2 * 10 ** 3
-                }
-            )
+        # Create balance transfer call
+        call = self.kusama_substrate.compose_call(
+            call_module='Balances',
+            call_function='transfer',
+            call_params={
+                'dest': 'EaG2CRhJWPb7qmdcJvy3LiWdh26Jreu9Dx6R1rXxPmYXoDk',
+                'value': 3 * 10 ** 3
+            }
+        )
 
-            extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair)
+        extrinsic = self.kusama_substrate.create_signed_extrinsic(call=call, keypair=self.keypair, tip=1)
 
-            self.assertEqual(extrinsic.address.value, keypair.public_key)
-            self.assertEqual(extrinsic.call_module.name, 'Balances')
-            self.assertEqual(extrinsic.call.name, 'transfer')
+        decoded_extrinsic = self.kusama_substrate.create_scale_object("Extrinsic")
+        decoded_extrinsic.decode(extrinsic.data)
 
-            # Randomly created account should always have 0 nonce, otherwise account already exists
-            self.assertEqual(extrinsic.nonce.value, 0)
-
-            try:
-                substrate.submit_extrinsic(extrinsic)
-
-                self.fail('Should raise no funds to pay fees exception')
-
-            except SubstrateRequestException as e:
-                # Extrinsic should be successful if account had balance, eitherwise 'Bad proof' error should be raised
-                self.assertEqual(e.args[0]['data'], 'Inability to pay some fees (e.g. account balance too low)')
+        self.assertEqual(decoded_extrinsic['call']['call_module'].name, 'Balances')
+        self.assertEqual(decoded_extrinsic['call']['call_function'].name, 'transfer')
+        self.assertEqual(extrinsic['nonce'], 0)
+        self.assertEqual(extrinsic['tip'], 1)
 
     def test_create_mortal_extrinsic(self):
-        # Create new keypair
-        mnemonic = Keypair.generate_mnemonic()
-        keypair = Keypair.create_from_mnemonic(mnemonic, ss58_format=2)
 
         for substrate in [self.kusama_substrate, self.polkadot_substrate]:
 
@@ -102,11 +80,11 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
                 call_function='transfer',
                 call_params={
                     'dest': 'EaG2CRhJWPb7qmdcJvy3LiWdh26Jreu9Dx6R1rXxPmYXoDk',
-                    'value': 2 * 10 ** 3
+                    'value': 3 * 10 ** 3
                 }
             )
 
-            extrinsic = substrate.create_signed_extrinsic(call=call, keypair=keypair, era={'period': 64})
+            extrinsic = substrate.create_signed_extrinsic(call=call, keypair=self.keypair, era={'period': 64})
 
             try:
                 substrate.submit_extrinsic(extrinsic)
@@ -115,7 +93,34 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
 
             except SubstrateRequestException as e:
                 # Extrinsic should be successful if account had balance, eitherwise 'Bad proof' error should be raised
-                self.assertEqual(e.args[0]['data'], 'Inability to pay some fees (e.g. account balance too low)')
+                pass
+
+    def test_create_batch_extrinsic(self):
+
+        balance_call = self.polkadot_substrate.compose_call(
+            call_module='Balances',
+            call_function='transfer',
+            call_params={
+                'dest': 'EaG2CRhJWPb7qmdcJvy3LiWdh26Jreu9Dx6R1rXxPmYXoDk',
+                'value': 3 * 10 ** 3
+            }
+        )
+
+        call = self.polkadot_substrate.compose_call(
+            call_module='Utility',
+            call_function='batch',
+            call_params={
+                'calls': [balance_call, balance_call]
+            }
+        )
+
+        extrinsic = self.polkadot_substrate.create_signed_extrinsic(call=call, keypair=self.keypair, era={'period': 64})
+
+        # Decode extrinsic again as test
+        extrinsic.decode(extrinsic.data)
+
+        self.assertEqual('Utility', extrinsic.value['call']['call_module'])
+        self.assertEqual('batch', extrinsic.value['call']['call_function'])
 
     def test_create_unsigned_extrinsic(self):
 
@@ -155,7 +160,7 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
             call_module='System',
             call_function='remark',
             call_params={
-                '_remark': '0x' + ('01' * 177)
+                'remark': '0x' + ('01' * 177)
             }
         )
 
@@ -169,7 +174,7 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
             call_module='System',
             call_function='remark',
             call_params={
-                '_remark': '0x' + ('01' * 178)
+                'remark': '0x' + ('01' * 178)
             }
         )
 
@@ -177,11 +182,45 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
 
         self.assertEqual(signature_payload.length, 32)
 
+    def test_create_extrinsic_bytes_signature(self):
+        # Create balance transfer call
+        call = self.kusama_substrate.compose_call(
+            call_module='Balances',
+            call_function='transfer',
+            call_params={
+                'dest': 'EaG2CRhJWPb7qmdcJvy3LiWdh26Jreu9Dx6R1rXxPmYXoDk',
+                'value': 3 * 10 ** 3
+            }
+        )
+
+        signature_hex = '01741d037f6ea0c5269c6d78cde9505178ee928bb1077db49c684f9d1cad430e767e09808bc556ea2962a7b21a' \
+                        'ada78b3aaf63a8b41e035acfdb0f650634863f83'
+
+        extrinsic = self.kusama_substrate.create_signed_extrinsic(
+            call=call, keypair=self.keypair, signature=f'0x{signature_hex}'
+        )
+
+        self.assertEqual(extrinsic.value['signature']['Sr25519'], f'0x{signature_hex[2:]}')
+
+        extrinsic = self.kusama_substrate.create_signed_extrinsic(
+            call=call, keypair=self.keypair, signature=bytes.fromhex(signature_hex)
+        )
+
+        self.assertEqual(extrinsic.value['signature']['Sr25519'], f'0x{signature_hex[2:]}')
+
     def test_check_extrinsic_receipt(self):
         result = ExtrinsicReceipt(
             substrate=self.kusama_substrate,
             extrinsic_hash="0x5bcb59fdfc2ba852dabf31447b84764df85c8f64073757ea800f25b48e63ebd2",
             block_hash="0x8dae706d0f4882a7db484e708e27d9363a3adfa53baaac8b58c30f7c519a2520"
+        )
+
+        self.assertTrue(result.is_success)
+
+        result = ExtrinsicReceipt(
+            substrate=self.kusama_substrate,
+            extrinsic_hash="0x43ef739a8e4782e306908e710f333e65843fb35a57ec2a19df21cdc12258fbd8",
+            block_hash="0x8ab60dacd8535d948a755f72a9e09274d17f00693bbbdb55fa898db60a9ce580"
         )
 
         self.assertTrue(result.is_success)
@@ -213,6 +252,13 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
 
         self.assertEqual(result.error_message['name'], 'MustBeVoter')
 
+    def test_check_extrinsic_failed_error_message_portable_registry(self):
+        receipt = self.kusama_substrate.retrieve_extrinsic_by_identifier("11333518-4")
+
+        self.assertFalse(receipt.is_success)
+        self.assertEqual(881719000, receipt.weight)
+        self.assertEqual(receipt.error_message['name'], 'InsufficientBalance')
+
     def test_check_extrinsic_total_fee_amount(self):
         result = ExtrinsicReceipt(
             substrate=self.kusama_substrate,
@@ -221,6 +267,15 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
         )
 
         self.assertEqual(2583332366, result.total_fee_amount)
+
+    def test_check_extrinsic_total_fee_amount_portable_registry(self):
+        result = ExtrinsicReceipt(
+            substrate=self.kusama_substrate,
+            extrinsic_hash="0x5937b3fc03ffc62c84d536c3f1949e030b61ca5c680bfd237726e55a75840d1d",
+            block_hash="0x9d693c4fa4d54893bd6b0916843fcb5b7380f43cbea5c462be9213f536fd9a49"
+        )
+        self.assertTrue(result.is_success)
+        self.assertEqual(161331753, result.total_fee_amount)
 
     def test_check_extrinsic_total_fee_amount2(self):
         result = ExtrinsicReceipt(
@@ -258,6 +313,15 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
 
         self.assertEqual(252000000, result.weight)
 
+    def test_check_success_extrinsic_weight_portable_registry(self):
+        result = ExtrinsicReceipt(
+            substrate=self.kusama_substrate,
+            extrinsic_hash="0x5937b3fc03ffc62c84d536c3f1949e030b61ca5c680bfd237726e55a75840d1d",
+            block_hash="0x9d693c4fa4d54893bd6b0916843fcb5b7380f43cbea5c462be9213f536fd9a49"
+        )
+        self.assertTrue(result.is_success)
+        self.assertEqual(1234000, result.weight)
+
     def test_extrinsic_result_set_readonly_attr(self):
         result = ExtrinsicReceipt(
             substrate=self.kusama_substrate,
@@ -276,8 +340,11 @@ class CreateExtrinsicsTestCase(unittest.TestCase):
             extrinsic_hash="0xa5f2b9f4b8ea9f357780dd49010c99708f580a02624e4500af24b20b92773100"
         )
 
-        with self.assertRaises(ValueError):
-            events = result.triggered_events
+        with self.assertRaises(ValueError) as cm:
+            result.triggered_events
+        self.assertEqual('ExtrinsicReceipt can\'t retrieve events because it\'s unknown which block_hash it is '
+                         'included, manually set block_hash or use `wait_for_inclusion` when sending extrinsic',
+                         str(cm.exception))
 
 
 if __name__ == '__main__':

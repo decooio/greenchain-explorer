@@ -70,9 +70,34 @@ class TestInit(unittest.TestCase):
         with self.assertRaises(TypeError):
             substrate.token_decimals = 'test'
 
-    def test_init_with_unknown_preset(self):
-        with self.assertRaises(ValueError):
-            SubstrateInterface(url='http://dummy', type_registry_preset='unknown')
+    def test_is_valid_ss58_address(self):
+        self.assertTrue(self.kusama_substrate.is_valid_ss58_address('GLdQ4D4wkeEJUX8DBT9HkpycFVYQZ3fmJyQ5ZgBRxZ4LD3S'))
+        self.assertFalse(
+            self.kusama_substrate.is_valid_ss58_address('12gX42C4Fj1wgtfgoP624zeHrcPBqzhb4yAENyvFdGX6EUnN')
+        )
+        self.assertFalse(
+            self.kusama_substrate.is_valid_ss58_address('5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY')
+        )
+
+        self.assertFalse(self.polkadot_substrate.is_valid_ss58_address('GLdQ4D4wkeEJUX8DBT9HkpycFVYQZ3fmJyQ5ZgBRxZ4LD3S'))
+        self.assertTrue(
+            self.polkadot_substrate.is_valid_ss58_address('12gX42C4Fj1wgtfgoP624zeHrcPBqzhb4yAENyvFdGX6EUnN')
+        )
+
+    def test_lru_cache_not_shared(self):
+        block_number = self.kusama_substrate.get_block_number("0xa4d873095aeae6fc1f3953f0a0085ee216bf8629342aaa92bd53f841e1052e1c")
+        block_number2 = self.polkadot_substrate.get_block_number(
+            "0xa4d873095aeae6fc1f3953f0a0085ee216bf8629342aaa92bd53f841e1052e1c")
+
+        self.assertIsNotNone(block_number)
+        self.assertIsNone(block_number2)
+
+    def test_context_manager(self):
+        with SubstrateInterface(url=settings.KUSAMA_NODE_URL) as substrate:
+            self.assertTrue(substrate.websocket.connected)
+            self.assertEqual(2, substrate.ss58_format)
+
+        self.assertFalse(substrate.websocket.connected)
 
 
 if __name__ == '__main__':
