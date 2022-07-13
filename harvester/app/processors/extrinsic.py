@@ -19,8 +19,7 @@
 #  extrinsic.py
 #
 
-import dateutil.parser
-import pytz
+import datetime
 import traceback
 from app import settings
 from app.models.data import IdentityAudit, Account, Contract, ContractInstance, ContractInstanceExtrinsic
@@ -39,7 +38,9 @@ class TimestampExtrinsicProcessor(ExtrinsicProcessor):
             # Store block date time related fields
             for param in self.extrinsic.params:
                 if param.get('name') == 'now':
-                    self.block.set_datetime(dateutil.parser.parse(param.get('value')).replace(tzinfo=pytz.UTC))
+                    t = datetime.datetime.fromtimestamp(param.get('value') / 1000.0)
+                    self.block.set_datetime(t)
+                    # self.block.set_datetime(dateutil.parser.parse(param.get('value')).replace(tzinfo=pytz.UTC))
 
 
 class DemocracyVoteExtrinsicProcessor(ExtrinsicProcessor):

@@ -25,7 +25,7 @@ from sqlalchemy import distinct
 from sqlalchemy.orm.exc import NoResultFound
 from substrateinterface.utils.hasher import blake2_256
 
-from app import settings
+from app import settings, utils
 from substrateinterface.utils.hasher import blake2_256
 
 from app.models.data import Log, AccountAudit, Account, AccountIndexAudit, AccountIndex, \
@@ -41,47 +41,85 @@ from scalecodec.types import LogDigest
 class LogBlockProcessor(BlockProcessor):
 
     def accumulation_hook(self, db_session):
+        log_digest_cls = self.substrate.runtime_config.get_decoder_class('sp_runtime::generic::digest::DigestItem')
+
+        if log_digest_cls is None:
+            raise NotImplementedError("No decoding class found for 'DigestItem'")
 
         self.block.count_log = len(self.block.logs)
 
         for idx, log_data in enumerate(self.block.logs):
-            log_digest = LogDigest(ScaleBytes(log_data))
+            log_digest = log_digest_cls(data=ScaleBytes(log_data))
             log_digest.decode()
+
+            log_type = log_digest.value_object[0]  # ('PreRuntime', GenericPreRuntime)
+            # print(log_digest.value[log_type])
+            log_inner_data = {}
+            if ('PreRuntime' == log_type or 'Seal' == log_type) and self.substrate.implements_scaleinfo():
+                engine_id = bytes.fromhex(log_digest.value[log_type][0][2:]).decode('utf-8')
+                if engine_id == 'aura' and 'PreRuntime' == log_type:
+                    predigest_data = log_digest.value['PreRuntime'][1]
+                    try:
+                        if predigest_data[:2] != '0x':
+                            predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                        else:
+                            predigest_data = ScaleBytes(predigest_data)
+                    except ValueError:
+                        predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                    aura_predigest = self.substrate.runtime_config.create_scale_object(
+                        type_string='RawAuraPreDigest',
+                        # data=ScaleBytes(log_digest.value['PreRuntime'][1])
+                        data=predigest_data
+                    )
+                    aura_predigest.decode()
+                    slot_number = aura_predigest.value['slot_number']
+                    log_inner_data = {"data": {"slot_number": slot_number}, "engine": "aura"}
+                elif engine_id == 'aura' and 'Seal' == log_type:
+                    log_inner_data = {"data": log_digest.value['Seal'][1], "engine": "aura"}
+
+                elif engine_id == 'BABE' and 'PreRuntime' == log_type:
+                    predigest_data = log_digest.value['PreRuntime'][1]
+                    try:
+                        if predigest_data[:2] != '0x':
+                            predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                        else:
+                            predigest_data = ScaleBytes(predigest_data)
+                    except ValueError:
+                        predigest_data = ScaleBytes(f"0x{predigest_data.encode().hex()}")
+                    babe_predigest = self.substrate.runtime_config.create_scale_object(
+                        type_string='RawBabePreDigest',
+                        # data=ScaleBytes(log_digest.value['PreRuntime'][1])
+                        data=predigest_data
+                    )
+                    babe_predigest.decode()
+                    rank_validator = babe_predigest[1].value['authority_index']
+                    slot_number = babe_predigest[1].value['slot_number']
+                    log_inner_data = {"data": {"slot_number": slot_number, "authority_index": rank_validator},
+                                      "engine": "BABE"}
+                elif engine_id == 'BABE' and 'Seal' == log_type:
+                    log_inner_data = {"data": log_digest.value['Seal'][1], "engine": "BABE"}
+            else:
+                if type(log_digest.value) == str:
+                    log_inner_data = log_digest.value
+                else:
+                    log_inner_data = log_digest.value[log_type]
 
             log = Log(
                 block_id=self.block.id,
                 log_idx=idx,
                 type_id=log_digest.index,
-                type=log_digest.index_value,
-                data=log_digest.value,
+                type=log_type,
+                data=log_inner_data,
             )
 
             if log.type == 'PreRuntime':
-                if log.data['value']['engine'] == 'BABE':
+                if log.data['engine'] == 'BABE':
                     # Determine block producer
-                    babe_predigest_cls = RuntimeConfiguration().get_decoder_class('RawBabePreDigest')
+                    self.block.authority_index = log.data['data']['authority_index']
+                    self.block.slot_number = log.data['data']['slot_number']
 
-                    babe_predigest = babe_predigest_cls(
-                        ScaleBytes(bytearray.fromhex(log.data['value']['data'].replace('0x', '')))
-                    ).decode()
-
-                    if len(list(babe_predigest.values())) > 0:
-
-                        babe_predigest_value = list(babe_predigest.values())[0]
-
-                        log.data['value']['data'] = babe_predigest_value
-                        self.block.authority_index = log.data['value']['data']['authorityIndex']
-                        self.block.slot_number = log.data['value']['data']['slotNumber']
-
-                if log.data['value']['engine'] == 'aura':
-                    aura_predigest_cls = RuntimeConfiguration().get_decoder_class('RawAuraPreDigest')
-
-                    aura_predigest = aura_predigest_cls(
-                        ScaleBytes(bytearray.fromhex(log.data['value']['data'].replace('0x', '')))
-                    ).decode()
-
-                    log.data['value']['data'] = aura_predigest
-                    self.block.slot_number = aura_predigest['slotNumber']
+                if log.data['engine'] == 'aura':
+                    self.block.slot_number = log.data['data']['slot_number']
 
             log.save(db_session)
 
@@ -182,10 +220,20 @@ class AccountBlockProcessor(BlockProcessor):
                 elif account_audit.type_id == settings.ACCOUNT_AUDIT_TYPE_NEW:
                     account.is_reaped = False
 
+                    if account_audit.data and account_audit.data.get('is_tech_comm_member') is True:
+                        account.is_tech_comm_member = True
+                        account.was_tech_comm_member = True
+
+                    if account_audit.data and account_audit.data.get('is_sudo') is True:
+                        account.is_sudo = True
+                        account.was_sudo = True
+
+                    if account_audit.data and account_audit.data.get('is_treasury') is True:
+                        account.is_treasury = True
+
                 account.updated_at_block = self.block.id
 
             except NoResultFound:
-
                 account = Account(
                     id=account_audit.account_id,
                     address=ss58_encode(account_audit.account_id, settings.SUBSTRATE_ADDRESS_TYPE),
@@ -193,6 +241,8 @@ class AccountBlockProcessor(BlockProcessor):
                     is_treasury=(account_audit.data or {}).get('is_treasury', False),
                     is_sudo=(account_audit.data or {}).get('is_sudo', False),
                     was_sudo=(account_audit.data or {}).get('is_sudo', False),
+                    is_tech_comm_member=(account_audit.data or {}).get('is_tech_comm_member', False),
+                    was_tech_comm_member=(account_audit.data or {}).get('is_tech_comm_member', False),
                     created_at_block=self.block.id,
                     updated_at_block=self.block.id
                 )
@@ -201,27 +251,11 @@ class AccountBlockProcessor(BlockProcessor):
                 account_index = AccountIndex.query(db_session).filter_by(account_id=account.id).first()
 
                 if account_index:
-
                     account.index_address = account_index.short_address
 
                 # Retrieve and set initial balance
-                try:
-                    account_info_data = self.substrate.get_runtime_state(
-                        module='System',
-                        storage_function='Account',
-                        params=['0x{}'.format(account.id)],
-                        block_hash=self.block.hash
-                    ).get('result')
-
-                    if account_info_data:
-
-                        account.balance_free = account_info_data["data"]["free"]
-                        account.balance_reserved = account_info_data["data"]["reserved"]
-                        account.balance_total = account_info_data["data"]["free"] + account_info_data["data"]["reserved"]
-                        account.nonce = account_info_data["nonce"]
-                except ValueError:
-                    pass
-
+                self.update_account_info(account)
+                
                 # # If reaped but does not exist, create new account for now
                 # if account_audit.type_id != ACCOUNT_AUDIT_TYPE_NEW:
                 #     account.is_reaped = True
@@ -245,24 +279,24 @@ class AccountBlockProcessor(BlockProcessor):
                 created_at_block=self.block.id,
                 updated_at_block=self.block.id
             )
-
-            try:
-                account_info_data = self.substrate.get_runtime_state(
-                    module='System',
-                    storage_function='Account',
-                    params=['0x{}'.format(account.id)],
-                    block_hash=self.block.hash
-                ).get('result')
-
-                if account_info_data:
-                    account.balance_free = account_info_data["data"]["free"]
-                    account.balance_reserved = account_info_data["data"]["reserved"]
-                    account.balance_total = account_info_data["data"]["free"] + account_info_data["data"]["reserved"]
-                    account.nonce = account_info_data["nonce"]
-            except ValueError:
-                pass
-
+            self.update_account_info(account)
             account.save(db_session)
+    
+    def update_account_info(self, account: Account):
+        try:
+            account_info_data_storage = utils.query_storage(pallet_name='System', storage_name='Account',
+                                                            substrate=self.substrate,
+                                                            params=['0x{}'.format(account.id)],
+                                                            block_hash=self.block.hash)
+            if account_info_data_storage:
+                account_info_data = account_info_data_storage.value
+                account.balance_free = account_info_data["data"]["free"]
+                account.balance_reserved = account_info_data["data"]["reserved"]
+                account.balance_total = account_info_data["data"]["free"] + account_info_data["data"]["reserved"]
+                account.nonce = account_info_data["nonce"]
+        except ValueError as e:
+            print("ValueError: {}".format(e))
+            pass
 
 
 class AccountIndexBlockProcessor(BlockProcessor):

@@ -590,8 +590,8 @@ class NewAccountEventProcessor(EventProcessor):
         if len(self.event.attributes) == 2 and \
                 self.event.attributes[0]['type'] == 'AccountId' and self.event.attributes[1]['type'] == 'Balance':
 
-            account_id = self.event.attributes[0]['value'].replace('0x', '')
-            balance = self.event.attributes[1]['value']
+            account_id = self.event.attributes[0].replace('0x', '')
+            balance = self.event.attributes[1]
 
             self.block._accounts_new.append(account_id)
 
@@ -612,7 +612,7 @@ class NewAccountEventProcessor(EventProcessor):
     def process_search_index(self, db_session):
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_CREATED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -627,8 +627,7 @@ class SystemNewAccountEventProcessor(EventProcessor):
 
         # Check event requirements
         if len(self.event.attributes) == 1 and \
-                self.event.attributes[0]['type'] == 'AccountId':
-
+                (self.event.attributes[0]['type'] == 'AccountId' or self.event.attributes[0]['type'] == 'T::AccountId'):
             account_id = self.event.attributes[0]['value'].replace('0x', '')
 
             self.block._accounts_new.append(account_id)

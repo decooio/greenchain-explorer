@@ -24,46 +24,76 @@
 """
 import base58
 from hashlib import blake2b
+from typing import Optional
 
 from scalecodec import ScaleBytes
 from scalecodec.types import U8, U16, U32, U64
 
 
-def ss58_decode(address, valid_address_type=42):
+def ss58_decode(address: str, valid_ss58_format: Optional[int] = None) -> str:
+    """
+    Decodes given SS58 encoded address to an account ID
+    Parameters
+    ----------
+    address: e.g. EaG2CRhJWPb7qmdcJvy3LiWdh26Jreu9Dx6R1rXxPmYXoDk
+    valid_ss58_format
+
+    Returns
+    -------
+    Decoded string AccountId
+    """
+
+    # Check if address is already decoded
+    if address.startswith('0x'):
+        return address
+
+    if address == '':
+        raise ValueError("Empty address provided")
+
     checksum_prefix = b'SS58PRE'
 
-    ss58_format = base58.b58decode(address)
+    address_decoded = base58.b58decode(address)
 
-    if ss58_format[0] != valid_address_type:
-        raise ValueError("Invalid Address type")
+    if address_decoded[0] & 0b0100_0000:
+        ss58_format_length = 2
+        ss58_format = ((address_decoded[0] & 0b0011_1111) << 2) | (address_decoded[1] >> 6) | \
+                      ((address_decoded[1] & 0b0011_1111) << 8)
+    else:
+        ss58_format_length = 1
+        ss58_format = address_decoded[0]
 
-    # Public keys has a two byte checksum, account index 1 byte
-    if len(ss58_format) in [3, 4, 6, 10]:
+    if ss58_format in [46, 47]:
+        raise ValueError(f"{ss58_format} is a reserved SS58 format")
+
+    if valid_ss58_format is not None and ss58_format != valid_ss58_format:
+        raise ValueError("Invalid SS58 format")
+
+    # Determine checksum length according to length of address string
+    if len(address_decoded) in [3, 4, 6, 10]:
         checksum_length = 1
-    elif len(ss58_format) in [5, 7, 11, 35]:
+    elif len(address_decoded) in [5, 7, 11, 34 + ss58_format_length, 35 + ss58_format_length]:
         checksum_length = 2
-    elif len(ss58_format) in [8, 12]:
+    elif len(address_decoded) in [8, 12]:
         checksum_length = 3
-    elif len(ss58_format) in [9, 13]:
+    elif len(address_decoded) in [9, 13]:
         checksum_length = 4
-    elif len(ss58_format) in [14]:
+    elif len(address_decoded) in [14]:
         checksum_length = 5
-    elif len(ss58_format) in [15]:
+    elif len(address_decoded) in [15]:
         checksum_length = 6
-    elif len(ss58_format) in [16]:
+    elif len(address_decoded) in [16]:
         checksum_length = 7
-    elif len(ss58_format) in [17]:
+    elif len(address_decoded) in [17]:
         checksum_length = 8
     else:
         raise ValueError("Invalid address length")
 
-    checksum = blake2b(checksum_prefix + ss58_format[0:-checksum_length]).digest()
+    checksum = blake2b(checksum_prefix + address_decoded[0:-checksum_length]).digest()
 
-    if checksum[0:checksum_length] != ss58_format[-checksum_length:]:
+    if checksum[0:checksum_length] != address_decoded[-checksum_length:]:
         raise ValueError("Invalid checksum")
 
-    return ss58_format[1:len(ss58_format)-checksum_length].hex()
-
+    return address_decoded[ss58_format_length:len(address_decoded)-checksum_length].hex()
 
 def ss58_encode(address, address_type=42):
     checksum_prefix = b'SS58PRE'
@@ -119,3 +149,28 @@ def ss58_decode_account_index(address, valid_address_type=42):
     else:
         raise ValueError("Invalid account index length")
 
+def is_valid_ss58_address(value: str, valid_ss58_format: Optional[int] = None) -> bool:
+    """
+    Checks if given value is a valid SS58 formatted address, optionally check if address is valid for specified
+    ss58_format
+
+    Parameters
+    ----------
+    value: value to checked
+    valid_ss58_format: if valid_ss58_format is provided the address must be valid for specified ss58_format (network) as well
+
+    Returns
+    -------
+    bool
+    """
+
+    # Return False in case a public key is provided
+    if value.startswith('0x'):
+        return False
+
+    try:
+        ss58_decode(value, valid_ss58_format=valid_ss58_format)
+    except Exception:
+        return False
+
+    return True

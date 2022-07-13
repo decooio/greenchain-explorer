@@ -17,4 +17,4 @@
 #  along with Polkascan. If not, see <http://www.gnu.org/licenses/>.
 #
 #  __init__.py
-
+from .storage import query_storage, query_storage_by_db

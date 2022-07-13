@@ -17,7 +17,8 @@
 #  along with Polkascan. If not, see <http://www.gnu.org/licenses/>.
 #
 #  base.py
-from app.models.data import SearchIndex
+from app.models.data import SearchIndex, BlockTotal, Block, Event, Extrinsic
+from substrateinterface import SubstrateInterface
 
 
 class BaseService(object):
@@ -132,25 +133,14 @@ class EventProcessor(Processor):
     module_id = None
     event_id = None
 
-    def __init__(self, block, event, extrinsic=None, metadata=None, substrate=None):
+    def __init__(self, block: Block = None, event: Event = None, extrinsic: Extrinsic = None, metadata=None,
+                 substrate: SubstrateInterface = None, sequenced_block: BlockTotal = None):
         self.block = block
         self.event = event
         self.extrinsic = extrinsic
         self.metadata = metadata
         self.substrate = substrate
-
-    def add_search_index(self, index_type_id, account_id=None, sorting_value=None):
-        return SearchIndex(
-            index_type_id=index_type_id,
-            block_id=self.block.id,
-            event_idx=self.event.event_idx,
-            extrinsic_idx=self.event.extrinsic_idx,
-            account_id=account_id,
-            sorting_value=sorting_value
-        )
-
-    def process_search_index(self, db_session):
-        pass
+        self.sequenced_block = sequenced_block
 
     def add_search_index(self, index_type_id, account_id=None, sorting_value=None):
         return SearchIndex(
