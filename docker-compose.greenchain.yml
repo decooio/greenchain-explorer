@@ -94,8 +94,6 @@ services:
   redis:
     image: redis:3.2.11
     hostname: redis
-    ports:
-      - '6379:6379'
 
   mysql:
     image: mysql:8.0.29
@@ -121,7 +119,7 @@ services:
         NETWORK_TOKEN_SYMBOL: GRN
         NETWORK_TOKEN_DECIMALS: 18
         NETWORK_COLOR_CODE: 777777
-        API_URL: https://explorer.greenchain.cc/api/v1
+        API_URL: http://127.0.0.1:8080/api/v1
     ports:
       - '8080:80'
     depends_on:
