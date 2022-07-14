@@ -48,7 +48,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   public networks: DocumentCollection<Network>;
 
-  private networkSubscription: Subscription;
+  // private networkSubscription: Subscription;
   public showLegalMessage: boolean;
 
   public singleNetworkVersion = false;
@@ -83,12 +83,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.showLegalMessage = !this.appConfigService.getAgreeWithTerms();
 
-    this.networkSubscription = this.appConfigService.getCurrentNetwork().pipe(delay(0)).subscribe( network => {
-      if (network) {
-        this.currentNetwork = network;
-      }
-    });
+    /**
+     * Note: for now, we just use default network theme, so keep `currentNetwork` as null.
+     * Turn this on if we want to support multiple networks (like mainnet, testnet, etc) in future.
+     */
 
+    // this.networkSubscription = this.appConfigService.getCurrentNetwork().pipe(delay(0)).subscribe( network => {
+    //   if (network) {
+    //     this.currentNetwork = network;
+    //   }
+    // });
   }
 
   agreeTerms() {
@@ -155,6 +159,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
    ngOnDestroy() {
       // unsubscribe to ensure no memory leaks
-      this.networkSubscription.unsubscribe();
+      // this.networkSubscription.unsubscribe();
   }
 }
