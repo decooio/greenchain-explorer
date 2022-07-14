@@ -238,8 +238,7 @@ class PolkascanHarvesterService(BaseService):
             self.substrate.init_runtime(block_hash)
             modules = self.substrate.metadata_decoder.pallets
 
-            # self.db_session.begin(subtransactions=True)
-            savepoint = self.db_session.begin_nested()
+            self.db_session.begin(subtransactions=True)
             try:
 
                 # Store metadata in database
@@ -448,7 +447,6 @@ class PolkascanHarvesterService(BaseService):
 
                 # Process types
                 for runtime_type_data in list(self.substrate.get_type_registry(block_hash=block_hash).values()):
-
                     runtime_type = RuntimeType(
                         spec_version=runtime_type_data["spec_version"],
                         type_string=runtime_type_data["type_string"],
@@ -458,7 +456,6 @@ class PolkascanHarvesterService(BaseService):
                     )
                     runtime_type.save(self.db_session)
 
-                savepoint.commit()
                 self.db_session.commit()
                 # Put in local store
                 self.metadata_store[spec_version] = self.substrate.metadata_decoder
@@ -1049,13 +1046,12 @@ class PolkascanHarvesterService(BaseService):
         )
 
         if storage_method:
-            if storage_method.get("type_hasher_key1") == "Blake2_128Concat":
+            if storage_method.type['Map']['hasher'] == "Blake2_128Concat":
 
                 # get balances storage prefix
                 storage_key_prefix = self.substrate.generate_storage_hash(
                     storage_module='System',
-                    storage_function='Account',
-                    metadata_version=settings.SUBSTRATE_METADATA_VERSION
+                    storage_function='Account'
                 )
 
                 rpc_result = self.substrate.rpc_request(

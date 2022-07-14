@@ -25,6 +25,14 @@ alter user root@'%' identified with mysql_native_password by 'root';
 docker-compose -p greenchain -f docker-compose.greenchain-local.yml up --build
 ```
 
+## Add db migration scripts
+```bash
+cd harvester
+# install alembic if havn't
+pip3 install alembic  
+alembic revision -m "[message]"
+```
+
 ## Add custom types for Substrate Node Template
 
 * Modify `harvester/app/type_registry/substrate-node-template.json` to match the introduced types of the custom chain

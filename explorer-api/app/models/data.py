@@ -756,7 +756,7 @@ class RuntimeConstant(BaseModel):
     index = sa.Column(sa.Integer())
     name = sa.Column(sa.String(255), index=True)
     type = sa.Column(sa.String(255))
-    value = sa.Column(sa.String(255))
+    value = sa.Column(sa.Text())
     documentation = sa.Column(sa.Text())
 
     def serialize_id(self):

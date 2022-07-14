@@ -536,7 +536,7 @@ class RuntimeEventAttribute(BaseModel):
     id = sa.Column(sa.Integer(), primary_key=True)
     runtime_event_id = sa.Column(sa.Integer(), nullable=False)
     index = sa.Column(sa.Integer(), nullable=False)
-    type = sa.Column(sa.String(255))
+    type = sa.Column(sa.JSON(), default=None, server_default=None)
 
 
 class RuntimeStorage(BaseModel):
