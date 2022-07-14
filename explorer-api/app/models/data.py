@@ -257,48 +257,49 @@ class Event(BaseModel):
         return '{}-{}'.format(self.block_id, self.event_idx)
 
     def serialize_formatting_hook(self, obj_dict):
-        for item in obj_dict['attributes']['attributes']:
-            if item['type'] in ['AccountId', 'AuthorityId', 'Address', 'LookupSource'] and item['value']:
-                # SS58 format AccountId public keys
-                item['orig_value'] = item['value'].replace('0x', '')
-                item['value'] = ss58_encode(item['value'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE)
+        # for item in obj_dict['attributes']['attributes']:
+        #     if item['type'] in ['AccountId', 'AuthorityId', 'Address', 'LookupSource'] and item['value']:
+        #         # SS58 format AccountId public keys
+        #         item['orig_value'] = item['value'].replace('0x', '')
+        #         item['value'] = ss58_encode(item['value'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE)
 
-            elif item['type'] in ['AccountIndex'] and item['value']:
-                # SS58 format Account index
-                item['orig_value'] = item['value']
-                item['value'] = ss58_encode_account_index(item['value'], SUBSTRATE_ADDRESS_TYPE)
-            elif item['type'] in ['AuthorityList'] and item['value']:
-                for idx, vec_item in enumerate(item['value']):
-                    item['value'][idx]['AuthorityId'] = {
-                        'name': 'AuthorityId',
-                        'type': 'Address',
-                        'value': ss58_encode(vec_item['AuthorityId'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
-                        'orig_value': vec_item['AuthorityId'].replace('0x', '')
-                    }
-            elif item['type'] == 'Vec<IdentificationTuple>':
-                for idx, vec_item in enumerate(item['value']):
-                    item['value'][idx]['validatorId'] = {
-                        'name': 'validatorId',
-                        'type': 'Address',
-                        'value': ss58_encode(vec_item['validatorId'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
-                        'orig_value': vec_item['validatorId'].replace('0x', '')
-                    }
+        #     elif item['type'] in ['AccountIndex'] and item['value']:
+        #         # SS58 format Account index
+        #         item['orig_value'] = item['value']
+        #         item['value'] = ss58_encode_account_index(item['value'], SUBSTRATE_ADDRESS_TYPE)
+        #     elif item['type'] in ['AuthorityList'] and item['value']:
+        #         for idx, vec_item in enumerate(item['value']):
+        #             item['value'][idx]['AuthorityId'] = {
+        #                 'name': 'AuthorityId',
+        #                 'type': 'Address',
+        #                 'value': ss58_encode(vec_item['AuthorityId'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
+        #                 'orig_value': vec_item['AuthorityId'].replace('0x', '')
+        #             }
+        #     elif item['type'] == 'Vec<IdentificationTuple>':
+        #         for idx, vec_item in enumerate(item['value']):
+        #             item['value'][idx]['validatorId'] = {
+        #                 'name': 'validatorId',
+        #                 'type': 'Address',
+        #                 'value': ss58_encode(vec_item['validatorId'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
+        #                 'orig_value': vec_item['validatorId'].replace('0x', '')
+        #             }
 
-                    for other_idx, other_item in enumerate(vec_item['exposure']['others']):
-                        item['value'][idx]['exposure']['others'][other_idx]['who'] = {
-                            'name': 'validatorId',
-                            'type': 'Address',
-                            'value': ss58_encode(other_item['who'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
-                            'orig_value': other_item['who'].replace('0x', '')
-                        }
-            elif item['type'] in ['Vec<(AccountId, Balance)>'] and item['value']:
-                for idx, vec_item in enumerate(item['value']):
-                    item['value'][idx]['account'] = {
-                        'name': 'account',
-                        'type': 'Address',
-                        'value': ss58_encode(vec_item['account'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
-                        'orig_value': vec_item['account'].replace('0x', '')
-                    }
+        #             for other_idx, other_item in enumerate(vec_item['exposure']['others']):
+        #                 item['value'][idx]['exposure']['others'][other_idx]['who'] = {
+        #                     'name': 'validatorId',
+        #                     'type': 'Address',
+        #                     'value': ss58_encode(other_item['who'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
+        #                     'orig_value': other_item['who'].replace('0x', '')
+        #                 }
+        #     elif item['type'] in ['Vec<(AccountId, Balance)>'] and item['value']:
+        #         for idx, vec_item in enumerate(item['value']):
+        #             item['value'][idx]['account'] = {
+        #                 'name': 'account',
+        #                 'type': 'Address',
+        #                 'value': ss58_encode(vec_item['account'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
+        #                 'orig_value': vec_item['account'].replace('0x', '')
+        #             }
+        
         return obj_dict
 
 

@@ -586,59 +586,59 @@ class BalanceTransferListResource(JSONAPIListResource):
 
         if item.event_id == 'Transfer':
 
-            sender = Account.query(self.session).get(item.attributes[0]['value'].replace('0x', ''))
+            sender = Account.query(self.session).get(item.attributes[0].replace('0x', ''))
 
             if sender:
                 sender_data = sender.serialize()
             else:
                 sender_data = {
                     'type': 'account',
-                    'id': item.attributes[0]['value'].replace('0x', ''),
+                    'id': item.attributes[0].replace('0x', ''),
                     'attributes': {
-                        'id': item.attributes[0]['value'].replace('0x', ''),
-                        'address': ss58_encode(item.attributes[0]['value'].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                        'id': item.attributes[0].replace('0x', ''),
+                        'address': ss58_encode(item.attributes[0].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
                     }
                 }
 
-            destination = Account.query(self.session).get(item.attributes[1]['value'].replace('0x', ''))
+            destination = Account.query(self.session).get(item.attributes[1].replace('0x', ''))
 
             if destination:
                 destination_data = destination.serialize()
             else:
                 destination_data = {
                     'type': 'account',
-                    'id': item.attributes[1]['value'].replace('0x', ''),
+                    'id': item.attributes[1].replace('0x', ''),
                     'attributes': {
-                        'id': item.attributes[1]['value'].replace('0x', ''),
-                        'address': ss58_encode(item.attributes[1]['value'].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                        'id': item.attributes[1].replace('0x', ''),
+                        'address': ss58_encode(item.attributes[1].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
                     }
                 }
             # Some networks don't have fees
             if len(item.attributes) == 4:
-                fee = item.attributes[3]['value']
+                fee = item.attributes[3]
             else:
                 fee = 0
 
-            value = item.attributes[2]['value']
+            value = item.attributes[2]
         elif item.event_id == 'Claimed':
 
             fee = 0
-            sender_data = {'name': 'Claim', 'eth_address': item.attributes[1]['value']}
+            sender_data = {'name': 'Claim', 'eth_address': item.attributes[1]}
             destination_data = {}
-            value = item.attributes[2]['value']
+            value = item.attributes[2]
 
         elif item.event_id == 'Deposit':
 
             fee = 0
             sender_data = {'name': 'Deposit'}
             destination_data = {}
-            value = item.attributes[1]['value']
+            value = item.attributes[1]
 
         elif item.event_id == 'Reward':
             fee = 0
             sender_data = {'name': 'Staking reward'}
             destination_data = {}
-            value = item.attributes[1]['value']
+            value = item.attributes[1]
         else:
             sender_data = {}
             fee = 0
@@ -667,37 +667,37 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
 
     def serialize_item(self, item):
 
-        sender = Account.query(self.session).get(item.attributes[0]['value'].replace('0x', ''))
+        sender = Account.query(self.session).get(item.attributes[0].replace('0x', ''))
 
         if sender:
             sender_data = sender.serialize()
         else:
             sender_data = {
                 'type': 'account',
-                'id': item.attributes[0]['value'].replace('0x', ''),
+                'id': item.attributes[0].replace('0x', ''),
                 'attributes': {
-                    'id': item.attributes[0]['value'].replace('0x', ''),
-                    'address': ss58_encode(item.attributes[0]['value'].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                    'id': item.attributes[0].replace('0x', ''),
+                    'address': ss58_encode(item.attributes[0].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
                 }
             }
 
-        destination = Account.query(self.session).get(item.attributes[1]['value'].replace('0x', ''))
+        destination = Account.query(self.session).get(item.attributes[1].replace('0x', ''))
 
         if destination:
             destination_data = destination.serialize()
         else:
             destination_data = {
                 'type': 'account',
-                'id': item.attributes[1]['value'].replace('0x', ''),
+                'id': item.attributes[1].replace('0x', ''),
                 'attributes': {
-                    'id': item.attributes[1]['value'].replace('0x', ''),
-                    'address': ss58_encode(item.attributes[1]['value'].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                    'id': item.attributes[1].replace('0x', ''),
+                    'address': ss58_encode(item.attributes[1].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
                 }
             }
 
         # Some networks don't have fees
         if len(item.attributes) == 4:
-            fee = item.attributes[3]['value']
+            fee = item.attributes[3]
         else:
             fee = 0
 
@@ -709,7 +709,7 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
                 'event_idx': '{}-{}'.format(item.block_id, item.event_idx),
                 'sender': sender_data,
                 'destination': destination_data,
-                'value': item.attributes[2]['value'],
+                'value': item.attributes[2],
                 'fee': fee
             }
         }
@@ -1142,7 +1142,8 @@ class RuntimeCallListResource(JSONAPIListResource):
 
             latest_runtime = Runtime.query(self.session).order_by(Runtime.spec_version.desc()).first()
 
-            query = query.filter_by(spec_version=latest_runtime.spec_version)
+            if latest_runtime is not None:
+                query = query.filter_by(spec_version=latest_runtime.spec_version)
 
         if params.get('filter[module_id]'):
 
@@ -1197,7 +1198,8 @@ class RuntimeEventListResource(JSONAPIListResource):
 
             latest_runtime = Runtime.query(self.session).order_by(Runtime.spec_version.desc()).first()
 
-            query = query.filter_by(spec_version=latest_runtime.spec_version)
+            if latest_runtime is not None:
+                query = query.filter_by(spec_version=latest_runtime.spec_version)
 
         if params.get('filter[module_id]'):
 
@@ -1257,7 +1259,8 @@ class RuntimeTypeListResource(JSONAPIListResource):
 
             latest_runtime = Runtime.query(self.session).order_by(Runtime.spec_version.desc()).first()
 
-            query = query.filter_by(spec_version=latest_runtime.spec_version)
+            if latest_runtime is not None:
+                query = query.filter_by(spec_version=latest_runtime.spec_version)
 
         return query
 
@@ -1277,7 +1280,8 @@ class RuntimeModuleListResource(JSONAPIListResource):
 
             latest_runtime = Runtime.query(self.session).order_by(Runtime.spec_version.desc()).first()
 
-            query = query.filter_by(spec_version=latest_runtime.spec_version)
+            if latest_runtime is not None:
+                query = query.filter_by(spec_version=latest_runtime.spec_version)
 
         return query
 

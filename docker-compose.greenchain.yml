@@ -99,6 +99,7 @@ services:
 
   mysql:
     image: mysql:8.0.29
+    command: --sort_buffer_size=512K
     hostname: mysql
     volumes:
       - 'db-data:/var/lib/mysql'
