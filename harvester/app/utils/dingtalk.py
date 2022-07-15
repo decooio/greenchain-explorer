@@ -4,7 +4,9 @@ from redis import StrictRedis, ConnectionPool
 import time
 
 import os
-redis_url = os.environ.get('CELERY_BACKEND')
+REDIS_URL = os.environ.get('CELERY_BACKEND')
+DINGTALK_ACCESS_TOKEN = os.environ.get('DINGTALK_ACCESS_TOKEN')
+DINGTALK_SECRET = os.environ.get('DINGTALK_SECRET')
 
 base_alert = '''
 ### Harvester添加block失败
@@ -20,9 +22,8 @@ base_alert = '''
 # 区块同步失败告警压缩(1个小时)
 alert_delta = 3600
 
-
 def get_redis_connect():
-    pool = ConnectionPool.from_url(redis_url)
+    pool = ConnectionPool.from_url(REDIS_URL)
     redis_conn = StrictRedis(connection_pool=pool)
     return redis_conn
 
@@ -50,10 +51,8 @@ def send_dingtalk(block_hash, alert_context):
         result = get_block_timestamp()
         if result is None or int(time.time()) - int(result) > alert_delta:
             set_block_timestamp()
-            webhook = 'https://oapi.dingtalk.com/robot/send?access_token=35b7fca19add91d961477daaf8e06be5fc328282ff845412c0ff8b4570127a7d'
-            secret = 'SEC8776e13f0ebabd7b5e58405bc86508ff79db03aafc78348943e7c7c56be48205'
+            webhook = 'https://oapi.dingtalk.com/robot/send?access_token={}'.format(DINGTALK_ACCESS_TOKEN)
+            secret = DINGTALK_SECRET
             format_data = base_alert.format(block_hash, alert_context)
             xiaoding = DingtalkChatbot(webhook, secret=secret)
             xiaoding.send_markdown(title='Harvester添加block失败', text=format_data, is_at_all=False)
-
-
