@@ -17,7 +17,7 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-      - SUBSTRATE_RPC_URL=http://greenchain-node:9933/
+      - SUBSTRATE_RPC_URL=wss://rpc.greenchain.cc
       - SUBSTRATE_ADDRESS_TYPE=42
       - TYPE_REGISTRY=greenchain
       - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
@@ -45,7 +45,7 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-      - SUBSTRATE_RPC_URL=http://greenchain-node:9933/
+      - SUBSTRATE_RPC_URL=wss://rpc.greenchain.cc
       - TYPE_REGISTRY=greenchain
       - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
       - SUBSTRATE_ADDRESS_TYPE=42
@@ -122,7 +122,7 @@ services:
         NETWORK_TOKEN_SYMBOL: GRN
         NETWORK_TOKEN_DECIMALS: 18
         NETWORK_COLOR_CODE: 777777
-        API_URL: http://127.0.0.1:8080/api/v1
+        API_URL: https://harvester-api.greenchain.cc/api/v1
     ports:
       - '8080:80'
     depends_on:
