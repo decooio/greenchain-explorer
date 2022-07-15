@@ -1,0 +1,138 @@
+version: '3.2'
+
+services:
+
+  explorer-api:
+    build:
+      context: .
+      dockerfile: ./explorer-api/Dockerfile
+    image: greenchain/pre-explorer-api:latest
+    hostname: explorer-api
+    command: ./start.sh
+    environment:
+      - PYTHONPATH=/usr/src/app:/usr/src/app/py-substrate-interface:/usr/src/app/py-scale-codec
+      - ENVIRONMENT=prod
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - SUBSTRATE_RPC_URL=http://host.docker.internal:9933/
+      - SUBSTRATE_ADDRESS_TYPE=42
+      - TYPE_REGISTRY=greenchain
+      - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
+      - SUBSTRATE_METADATA_VERSION=9
+    depends_on:
+      - mysql
+
+  harvester-api:
+    build:
+      context: .
+      dockerfile: ./harvester/Dockerfile
+    image: greenchain/pre-harvester:latest
+    hostname: harvester-api
+    ports:
+      - '8001:8000'
+    command: ./start.sh
+    # Note: `&env` is a defined yaml `anchor` that could be `aliased` later via `*env`
+    environment: &env
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+      - PYTHONPATH=/usr/src/app:/usr/src/app/py-substrate-interface/:/usr/src/app/py-scale-codec/
+      - ENVIRONMENT=prod
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - SUBSTRATE_RPC_URL=http://host.docker.internal:9933/
+      - TYPE_REGISTRY=greenchain
+      - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
+      - SUBSTRATE_ADDRESS_TYPE=42
+      - SUBSTRATE_METADATA_VERSION=9
+      - NEW_SESSION_EVENT_HANDLER=True
+      - SUBSTRATE_STORAGE_BALANCE=Account
+      - SUBSTRATE_STORAGE_INDICES=Accounts
+      - DINGTALK_ACCESS_TOKEN=${DINGTALK_ACCESS_TOKEN}
+      - DINGTALK_SECRET=${DINGTALK_SECRET}
+    depends_on:
+      - redis
+      - mysql
+
+  harvester-worker:
+    build:
+      context: .
+      dockerfile: ./harvester/Dockerfile
+    image: greenchain/pre-harvester:latest
+    command: celery -A app.tasks worker --loglevel=INFO
+    environment: *env
+    depends_on:
+      - redis
+      - mysql
+
+  harvester-beat:
+    build:
+      context: .
+      dockerfile: ./harvester/Dockerfile
+    image: greenchain/pre-harvester:latest
+    volumes:
+      - '/usr/src/app/data'
+    command: celery -A app.tasks beat --loglevel=INFO  --schedule="data/celerybeat-schedule" --pidfile="data/celerybeat.pid"
+    environment: *env
+    depends_on:
+      - redis
+
+  harvester-monitor:
+    build:
+      context: .
+      dockerfile: ./harvester/Dockerfile
+    image: greenchain/pre-harvester:latest
+    ports:
+      - '5555:5555'
+    command:  flower -A app.tasks --port=5555 --broker=redis://redis:6379/0
+    environment: *env
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:3.2.11
+    hostname: redis
+
+  mysql:
+    image: mysql:8.0.29
+    command: --sort_buffer_size=512K --default-authentication-plugin=mysql_native_password
+    hostname: mysql
+    volumes:
+      - 'db-data-local:/var/lib/mysql'
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+
+  explorer-gui:
+    image: greenchain/pre-explorer-gui:latest
+    build:
+      context: explorer-gui/.
+      args:
+        NETWORK_NAME: GreenChain
+        NETWORK_ID: greenchain
+        NETWORK_TYPE: pre
+        CHAIN_TYPE: para
+        NETWORK_TOKEN_SYMBOL: GRN
+        NETWORK_TOKEN_DECIMALS: 18
+        NETWORK_COLOR_CODE: 777777
+        API_URL: http://127.0.0.1:8080/api/v1
+    ports:
+      - '8080:80'
+    depends_on:
+      - harvester-api
+      - explorer-api
+
+  polkadot-ui:
+    image: polkasource/substrate-ui:polkadot-latest
+    ports:
+      - '8081:80'
+
+volumes:
+  db-data-local:

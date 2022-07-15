@@ -17,7 +17,7 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-      - SUBSTRATE_RPC_URL=http://host.docker.internal:9933/
+      - SUBSTRATE_RPC_URL=http://greenchain-node:9933/
       - SUBSTRATE_ADDRESS_TYPE=42
       - TYPE_REGISTRY=greenchain
       - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
@@ -45,7 +45,7 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
-      - SUBSTRATE_RPC_URL=http://host.docker.internal:9933/
+      - SUBSTRATE_RPC_URL=http://greenchain-node:9933/
       - TYPE_REGISTRY=greenchain
       - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
       - SUBSTRATE_ADDRESS_TYPE=42
@@ -100,7 +100,7 @@ services:
 
   mysql:
     image: mysql:8.0.29
-    command: --sort_buffer_size=512K
+    command: --sort_buffer_size=512K --default-authentication-plugin=mysql_native_password
     hostname: mysql
     volumes:
       - 'db-data-local:/var/lib/mysql'
