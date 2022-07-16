@@ -209,7 +209,7 @@ class Extrinsic(BaseModel):
     signature = sa.Column(sa.String(130))
     nonce = sa.Column(sa.Integer())
 
-    era = sa.Column(sa.String(4))
+    era = sa.Column(sa.String(20))
 
     call = sa.Column(sa.String(4))
     module_id = sa.Column(sa.String(64), index=True)
@@ -718,7 +718,7 @@ class ReorgExtrinsic(BaseModel):
     signature = sa.Column(sa.String(130))
     nonce = sa.Column(sa.Integer())
 
-    era = sa.Column(sa.String(4))
+    era = sa.Column(sa.String(20))
 
     call = sa.Column(sa.String(4))
     module_id = sa.Column(sa.String(64), index=True)
