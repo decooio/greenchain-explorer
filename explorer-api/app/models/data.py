@@ -23,8 +23,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.dialects.mysql import LONGTEXT
 
+from app import settings
 from app.models.base import BaseModel
-from app.utils.ss58 import ss58_encode, ss58_encode_account_index
+from app.utils.ss58 import ss58_encode, ss58_decode, ss58_encode, is_valid_ss58_address
 from app.settings import LOG_TYPE_AUTHORITIESCHANGE, SUBSTRATE_ADDRESS_TYPE
 
 class Account(BaseModel):
@@ -360,8 +361,15 @@ class Extrinsic(BaseModel):
             obj_dict['attributes']['account'] = self.account.serialize()
 
         if obj_dict['attributes'].get('address'):
-            obj_dict['attributes']['address_id'] = obj_dict['attributes']['address'].replace('0x', '')
-            obj_dict['attributes']['address'] = ss58_encode(obj_dict['attributes']['address'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE)
+            address = obj_dict['attributes']['address']
+            if is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE):
+                ss58_address = address
+                hex_address = ss58_decode(address)
+            else:
+                hex_address = address
+                ss58_address = ss58_encode(address)
+            obj_dict['attributes']['address_id'] = hex_address.replace('0x', '')
+            obj_dict['attributes']['address'] = ss58_address
 
         for item in obj_dict['attributes'].get('params', []):
             # SS58 format Addresses public keys

@@ -19,7 +19,7 @@ services:
       - DB_NAME=${DB_NAME}
       - SUBSTRATE_RPC_URL=http://host.docker.internal:9933/
       - SUBSTRATE_ADDRESS_TYPE=42
-      - TYPE_REGISTRY=greenchain
+      - TYPE_REGISTRY=default
       - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
       - SUBSTRATE_METADATA_VERSION=9
     depends_on:
@@ -46,7 +46,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - SUBSTRATE_RPC_URL=http://host.docker.internal:9933/
-      - TYPE_REGISTRY=greenchain
+      - TYPE_REGISTRY=default
       - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
       - SUBSTRATE_ADDRESS_TYPE=42
       - SUBSTRATE_METADATA_VERSION=9

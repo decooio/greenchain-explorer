@@ -34,7 +34,7 @@ from websocket import create_connection, WebSocketConnectionClosedException
 from scalecodec.base import ScaleDecoder, ScaleBytes, RuntimeConfigurationObject, ScaleType
 from scalecodec.types import GenericCall, GenericExtrinsic, Extrinsic
 from scalecodec.type_registry import load_type_registry_preset
-from scalecodec.updater import update_type_registries
+# from scalecodec.updater import update_type_registries
 
 from .key import extract_derive_path
 from .utils.ecdsa_helpers import mnemonic_to_ecdsa_private_key, ecdsa_verify, ecdsa_sign
@@ -3055,13 +3055,13 @@ class SubstrateInterface:
             "spec_version": spec_version
         }
 
-    def update_type_registry_presets(self) -> bool:
-        try:
-            update_type_registries()
-            self.reload_type_registry(use_remote_preset=False)
-            return True
-        except Exception:
-            return False
+    # def update_type_registry_presets(self) -> bool:
+    #     try:
+    #         update_type_registries()
+    #         self.reload_type_registry(use_remote_preset=False)
+    #         return True
+    #     except Exception:
+    #         return False
 
     def reload_type_registry(self, use_remote_preset: bool = True, auto_discover: bool = True):
         """

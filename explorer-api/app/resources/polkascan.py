@@ -36,7 +36,7 @@ from app.models.data import Block, Extrinsic, Event, RuntimeCall, RuntimeEvent, 
     BlockTotal, SessionValidator, Log, AccountIndex, RuntimeConstant, SessionNominator, \
     RuntimeErrorMessage, SearchIndex, AccountInfoSnapshot, ContractInstance, AccountPrivate
 from app.resources.base import JSONAPIResource, JSONAPIListResource, JSONAPIDetailResource, BaseResource
-from app.utils.ss58 import ss58_decode, ss58_encode
+from app.utils.ss58 import ss58_decode, ss58_encode, is_valid_ss58_address
 from scalecodec.base import RuntimeConfiguration
 from substrateinterface import SubstrateInterface
 
@@ -591,12 +591,14 @@ class BalanceTransferListResource(JSONAPIListResource):
             if sender:
                 sender_data = sender.serialize()
             else:
+                address = item.attributes[0].replace('0x', '')
+                ss58_address = address if is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_encode(address, settings.SUBSTRATE_ADDRESS_TYPE)
                 sender_data = {
                     'type': 'account',
                     'id': item.attributes[0].replace('0x', ''),
                     'attributes': {
                         'id': item.attributes[0].replace('0x', ''),
-                        'address': ss58_encode(item.attributes[0].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                        'address': ss58_address
                     }
                 }
 
@@ -605,12 +607,14 @@ class BalanceTransferListResource(JSONAPIListResource):
             if destination:
                 destination_data = destination.serialize()
             else:
+                address = item.attributes[1].replace('0x', '')
+                ss58_address = address if is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_encode(address, settings.SUBSTRATE_ADDRESS_TYPE)
                 destination_data = {
                     'type': 'account',
-                    'id': item.attributes[1].replace('0x', ''),
+                    'id': address,
                     'attributes': {
-                        'id': item.attributes[1].replace('0x', ''),
-                        'address': ss58_encode(item.attributes[1].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                        'id': address,
+                        'address': ss58_address
                     }
                 }
             # Some networks don't have fees
@@ -672,12 +676,19 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
         if sender:
             sender_data = sender.serialize()
         else:
+            address = item.attributes[0].replace('0x', '')
+            if is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE):
+                ss58_address = address
+                hex_address = ss58_decode(address)
+            else:
+                hex_address = address
+                ss58_address = ss58_encode(address)
             sender_data = {
                 'type': 'account',
-                'id': item.attributes[0].replace('0x', ''),
+                'id': hex_address,
                 'attributes': {
                     'id': item.attributes[0].replace('0x', ''),
-                    'address': ss58_encode(item.attributes[0].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                    'address': ss58_address
                 }
             }
 
@@ -686,12 +697,19 @@ class BalanceTransferDetailResource(JSONAPIDetailResource):
         if destination:
             destination_data = destination.serialize()
         else:
+            address = item.attributes[1].replace('0x', '')
+            if is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE):
+                ss58_address = address
+                hex_address = ss58_decode(address)
+            else:
+                hex_address = address
+                ss58_address = ss58_encode(address)
             destination_data = {
                 'type': 'account',
-                'id': item.attributes[1].replace('0x', ''),
+                'id': hex_address,
                 'attributes': {
                     'id': item.attributes[1].replace('0x', ''),
-                    'address': ss58_encode(item.attributes[1].replace('0x', ''), settings.SUBSTRATE_ADDRESS_TYPE)
+                    'address': ss58_address
                 }
             }
 

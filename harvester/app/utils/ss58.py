@@ -24,7 +24,7 @@
 """
 import base58
 from hashlib import blake2b
-from typing import Optional
+from typing import Optional, Union
 
 from scalecodec import ScaleBytes
 from scalecodec.types import U8, U16, U32, U64
@@ -95,15 +95,30 @@ def ss58_decode(address: str, valid_ss58_format: Optional[int] = None) -> str:
 
     return address_decoded[ss58_format_length:len(address_decoded)-checksum_length].hex()
 
-def ss58_encode(address, address_type=42):
+def ss58_encode(address: Union[str, bytes], ss58_format: int = 42):
+    """
+    Encodes an account ID to an Substrate address according to provided address_type
+
+    Parameters
+    ----------
+    address
+    ss58_format
+
+    Returns
+    -------
+
+    """
     checksum_prefix = b'SS58PRE'
+
+    if ss58_format < 0 or ss58_format > 16383 or ss58_format in [46, 47]:
+        raise ValueError("Invalid value for ss58_format")
 
     if type(address) is bytes or type(address) is bytearray:
         address_bytes = address
     else:
-        address_bytes = bytes.fromhex(address)
+        address_bytes = bytes.fromhex(address.replace('0x', ''))
 
-    if len(address_bytes) == 32:
+    if len(address_bytes) in [32, 33]:
         # Checksum size is 2 bytes for public key
         checksum_length = 2
     elif len(address_bytes) in [1, 2, 4, 8]:
@@ -112,10 +127,18 @@ def ss58_encode(address, address_type=42):
     else:
         raise ValueError("Invalid length for address")
 
-    address_format = bytes([address_type]) + address_bytes
-    checksum = blake2b(checksum_prefix + address_format).digest()
+    if ss58_format < 64:
+        ss58_format_bytes = bytes([ss58_format])
+    else:
+        ss58_format_bytes = bytes([
+            ((ss58_format & 0b0000_0000_1111_1100) >> 2) | 0b0100_0000,
+            (ss58_format >> 8) | ((ss58_format & 0b0000_0000_0000_0011) << 6)
+        ])
 
-    return base58.b58encode(address_format + checksum[:checksum_length]).decode()
+    input_bytes = ss58_format_bytes + address_bytes
+    checksum = blake2b(checksum_prefix + input_bytes).digest()
+
+    return base58.b58encode(input_bytes + checksum[:checksum_length]).decode()
 
 
 def ss58_encode_account_index(account_index, address_type=42):

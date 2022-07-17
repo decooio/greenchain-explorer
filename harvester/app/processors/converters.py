@@ -640,6 +640,8 @@ class PolkascanHarvesterService(BaseService):
             if 'address' in value:
                 version_info = '84'
                 address = value.get('address').replace('0x', '')
+                # Ensure `address` is in hex format
+                # address = address if not is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(address, settings.SUBSTRATE_ADDRESS_TYPE)
             if extrinsic_hash is not None:
                 extrinsic_hash = extrinsic_hash[2:]  # replace '0x'
 
@@ -685,11 +687,14 @@ class PolkascanHarvesterService(BaseService):
                     block.count_extrinsics_signedby_index += 1
 
                 # Add search index for signed extrinsics
+                # Ensure `account_id` is in hex format
+                account_id = model.address if not is_valid_ss58_address(model.address, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(model.address, settings.SUBSTRATE_ADDRESS_TYPE)
+                print('PolkascanHarvesterService.add_block', model.address, account_id)
                 search_index = SearchIndex(
                     index_type_id=settings.SEARCH_INDEX_SIGNED_EXTRINSIC,
                     block_id=block.id,
                     extrinsic_idx=model.extrinsic_idx,
-                    account_id=model.address
+                    account_id=account_id
                 )
                 search_index.save(self.db_session)
 
@@ -1005,11 +1010,14 @@ class PolkascanHarvesterService(BaseService):
 
                 # Add search index for signed extrinsics
                 if extrinsic.address:
+                    # Ensure `account_id` is in hex format
+                    account_id = extrinsic.address if not is_valid_ss58_address(extrinsic.address, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(extrinsic.address, settings.SUBSTRATE_ADDRESS_TYPE)
+                    print('PolkascanHarvesterService.rebuild_search_index', extrinsic.address, account_id)
                     search_index = SearchIndex(
                         index_type_id=settings.SEARCH_INDEX_SIGNED_EXTRINSIC,
                         block_id=block.id,
                         extrinsic_idx=extrinsic.extrinsic_idx,
-                        account_id=extrinsic.address
+                        account_id=account_id
                     )
                     search_index.save(self.db_session)
 
@@ -1046,7 +1054,8 @@ class PolkascanHarvesterService(BaseService):
         )
 
         if storage_method:
-            if storage_method.type['Map']['hasher'] == "Blake2_128Concat":
+            print('create_full_balance_snaphot', storage_method.type['Map'])
+            if "Blake2_128Concat" in storage_method.type['Map']['hashers']:
 
                 # get balances storage prefix
                 storage_key_prefix = self.substrate.generate_storage_hash(

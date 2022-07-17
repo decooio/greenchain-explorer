@@ -2404,7 +2404,7 @@ class ScaleInfoStorageEntryMetadata(GenericStorageEntryMetadata):
             key_type_string = self.get_type_string_for_type(self.value['type']['Map']['key'])
             nmap_key_scale_type = self.runtime_config.get_decoder_class(key_type_string)
 
-            if nmap_key_scale_type.type_mapping and nmap_key_scale_type.scale_info_type['def'][0] == 'tuple' and \
+            if nmap_key_scale_type is not None and nmap_key_scale_type.type_mapping and nmap_key_scale_type.scale_info_type['def'][0] == 'tuple' and \
                     len(self.get_param_hashers()) > 1:
                 # In case of tuple and multiple param hashers extract type_mapping as separate parameters
                 return nmap_key_scale_type.type_mapping

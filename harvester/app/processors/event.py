@@ -38,7 +38,7 @@ from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
 from substrateinterface import SubstrateInterface, ContractEvent, ContractMetadata, \
     ContractInstance as SubstrateContractInterface, Keypair 
 from substrateinterface.exceptions import StorageFunctionNotFound
-from app.utils.ss58 import ss58_encode
+from app.utils.ss58 import ss58_encode, is_valid_ss58_address, ss58_decode
 
 
 class NewSessionEventProcessor(EventProcessor):
@@ -551,7 +551,7 @@ class NewSessionEventProcessor(EventProcessor):
         self.block.count_sessions_new += 1
 
     def sequencing_hook(self, db_session, parent_block_data, parent_sequenced_block_data):
-        session_id = self.event.attributes[0]['value']
+        session_id = self.event.attributes[0]
 
         if settings.get_versioned_setting('NEW_SESSION_EVENT_HANDLER', self.block.spec_version_id):
             self.add_session(db_session, session_id)
@@ -569,6 +569,7 @@ class NewSessionEventProcessor(EventProcessor):
 
             # Add search indices for validators sessions
             for account_id in validators:
+                print('NewSessionEventProcessor.process_search_index', account_id)
                 search_index = self.add_search_index(
                     index_type_id=settings.SEARCH_INDEX_STAKING_SESSION,
                     account_id=account_id.replace('0x', '')
@@ -610,6 +611,7 @@ class NewAccountEventProcessor(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('NewAccountEventProcessor.process_search_index', self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_CREATED,
             account_id=self.event.attributes[0].replace('0x', '')
@@ -628,7 +630,7 @@ class SystemNewAccountEventProcessor(EventProcessor):
         # Check event requirements
         if len(self.event.attributes) == 1 and \
                 (self.event.attributes[0]['type'] == 'AccountId' or self.event.attributes[0]['type'] == 'T::AccountId'):
-            account_id = self.event.attributes[0]['value'].replace('0x', '')
+            account_id = self.event.attributes[0].replace('0x', '')
 
             self.block._accounts_new.append(account_id)
 
@@ -647,9 +649,10 @@ class SystemNewAccountEventProcessor(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('SystemNewAccountEventProcessor.process_search_index', self.event.attributes[0], self.event.attributes, self.event)
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_CREATED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes.replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -664,15 +667,18 @@ class ReapedAccount(EventProcessor):
         if len(self.event.attributes) == 1 and \
                 self.event.attributes[0]['type'] == 'AccountId':
 
-            account_id = self.event.attributes[0]['value'].replace('0x', '')
+            account_id = self.event.attributes[0].replace('0x', '')
 
         elif len(self.event.attributes) == 2 and \
                 self.event.attributes[0]['type'] == 'AccountId' and \
                 self.event.attributes[1]['type'] == 'Balance':
 
-            account_id = self.event.attributes[0]['value'].replace('0x', '')
+            account_id = self.event.attributes[0].replace('0x', '')
         else:
             raise ValueError('Event doensn\'t meet requirements')
+
+        # Ensure `account_id` is in hex format
+        account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
 
         self.block._accounts_reaped.append(account_id)
 
@@ -708,9 +714,10 @@ class ReapedAccount(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('ReapedAccount.process_search_index', self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_KILLED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -725,7 +732,7 @@ class KilledAccount(EventProcessor):
         if len(self.event.attributes) == 1 and \
                 self.event.attributes[0]['type'] == 'AccountId':
 
-            account_id = self.event.attributes[0]['value'].replace('0x', '')
+            account_id = self.event.attributes[0].replace('0x', '')
         else:
             raise ValueError('Event doensn\'t meet requirements')
 
@@ -747,9 +754,10 @@ class KilledAccount(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('KilledAccount.process_search_index', self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_KILLED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -762,8 +770,11 @@ class NewAccountIndexEventProcessor(EventProcessor):
 
     def accumulation_hook(self, db_session):
 
-        account_id = self.event.attributes[0]['value'].replace('0x', '')
-        id = self.event.attributes[1]['value']
+        account_id = self.event.attributes[0].replace('0x', '')
+        # Ensure `account_id` is in hex format
+        account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+
+        id = self.event.attributes[1]
 
         account_index_audit = AccountIndexAudit(
             account_index_id=id,
@@ -788,8 +799,10 @@ class IndexAssignedEventProcessor(EventProcessor):
 
     def accumulation_hook(self, db_session):
 
-        account_id = self.event.attributes[0]['value'].replace('0x', '')
-        id = self.event.attributes[1]['value']
+        account_id = self.event.attributes[0].replace('0x', '')
+        # Ensure `account_id` is in hex format
+        account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+        id = self.event.attributes[1]
 
         account_index_audit = AccountIndexAudit(
             account_index_id=id,
@@ -814,7 +827,7 @@ class IndexFreedEventProcessor(EventProcessor):
 
     def accumulation_hook(self, db_session):
 
-        account_index = self.event.attributes[0]['value']
+        account_index = self.event.attributes[0]
 
         new_account_index_audit = AccountIndexAudit(
             account_index_id=account_index,
@@ -838,7 +851,7 @@ class ProposedEventProcessor(EventProcessor):
     event_id = 'Proposed'
 
     def process_search_index(self, db_session):
-
+        print('ProposedEventProcessor.process_search_index', self.extrinsic.params, self.extrinsic.params[1])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_DEMOCRACY_PROPOSE,
             account_id=self.extrinsic.address,
@@ -854,7 +867,7 @@ class TechCommProposedEventProcessor(EventProcessor):
     event_id = 'Proposed'
 
     def process_search_index(self, db_session):
-
+        print('TechCommProposedEventProcessor.process_search_index', self.extrinsic.address)
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_TECHCOMM_PROPOSED,
             account_id=self.extrinsic.address
@@ -869,7 +882,7 @@ class TechCommVotedEventProcessor(EventProcessor):
     event_id = 'Voted'
 
     def process_search_index(self, db_session):
-
+        print('TechCommVotedEventProcessor.process_search_index', self.extrinsic.address)
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_TECHCOMM_VOTED,
             account_id=self.extrinsic.address
@@ -884,10 +897,11 @@ class TreasuryAwardedEventProcessor(EventProcessor):
     event_id = 'Awarded'
 
     def process_search_index(self, db_session):
+        print('TreasuryAwardedEventProcessor.process_search_index', self.event.attributes, self.event.attributes[2])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_TREASURY_AWARDED,
-            account_id=self.event.attributes[2]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[1]['value']
+            account_id=self.event.attributes[2].replace('0x', ''),
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -901,11 +915,11 @@ class CodeStoredEventProcessor(EventProcessor):
     def accumulation_hook(self, db_session):
 
         self.block.count_contracts_new += 1
-        code_hash = self.event.attributes[0]['value'].replace('0x', '')
+        code_hash = self.event.attributes[0].replace('0x', '')
         contract = Contract.query(db_session).filter_by(code_hash=code_hash).first()
         if contract is None:
             contract = Contract(
-                code_hash=self.event.attributes[0]['value'].replace('0x', ''),
+                code_hash=self.event.attributes[0].replace('0x', ''),
                 created_at_block=self.event.block_id,
                 created_at_extrinsic=self.event.extrinsic_idx,
                 created_at_event=self.event.event_idx,
@@ -1044,11 +1058,11 @@ class SlashEventProcessor(EventProcessor):
     event_id = 'Slash'
 
     def process_search_index(self, db_session):
-
+        print('SlashEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=SEARCH_INDEX_SLASHED_ACCOUNT,
-            account_id=self.event.attributes[0]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[1]['value']
+            account_id=self.event.attributes[0].replace('0x', ''),
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -1059,6 +1073,7 @@ class BalancesTransferProcessor(EventProcessor):
     event_id = 'Transfer'
 
     def process_search_index(self, db_session):
+        print('BalancesTransferProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=SEARCH_INDEX_BALANCETRANSFER,
             account_id=self.event.attributes[0].replace('0x', ''),
@@ -1081,10 +1096,11 @@ class BalancesDeposit(EventProcessor):
     event_id = 'Deposit'
 
     def process_search_index(self, db_session):
+        print('BalancesDeposit.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_BALANCES_DEPOSIT,
-            account_id=self.event.attributes[0]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[1]['value']
+            account_id=self.event.attributes[0].replace('0x', ''),
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -1096,10 +1112,10 @@ class HeartbeatReceivedEventProcessor(EventProcessor):
     event_id = 'HeartbeatReceived'
 
     def process_search_index(self, db_session):
-
+        print('HeartbeatReceivedEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=SEARCH_INDEX_HEARTBEATRECEIVED,
-            account_id=self.event.attributes[0]['value'].replace('0x', ''),
+            account_id=self.event.attributes[0].replace('0x', ''),
             sorting_value=None
         )
 
@@ -1113,8 +1129,8 @@ class SomeOffline(EventProcessor):
 
     def process_search_index(self, db_session):
 
-        for item in self.event.attributes[0]['value']:
-
+        for item in self.event.attributes[0]:
+            print('SomeOffline.process_search_index', item['validatorId'], item)
             search_index = self.add_search_index(
                 index_type_id=settings.SEARCH_INDEX_IMONLINE_SOMEOFFLINE,
                 account_id=item['validatorId'].replace('0x', ''),
@@ -1136,7 +1152,7 @@ class IdentitySetEventProcessor(EventProcessor):
                 self.event.attributes[0]['type'] == 'AccountId':
 
             identity_audit = IdentityAudit(
-                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                account_id=self.event.attributes[0].replace('0x', ''),
                 block_id=self.event.block_id,
                 extrinsic_idx=self.event.extrinsic_idx,
                 event_idx=self.event.event_idx,
@@ -1168,9 +1184,10 @@ class IdentitySetEventProcessor(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('IdentitySetEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_IDENTITY_SET,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1189,7 +1206,7 @@ class IdentityClearedEventProcessor(EventProcessor):
                 self.event.attributes[1]['type'] == 'Balance':
 
             identity_audit = IdentityAudit(
-                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                account_id=self.event.attributes[0].replace('0x', ''),
                 block_id=self.event.block_id,
                 extrinsic_idx=self.event.extrinsic_idx,
                 event_idx=self.event.event_idx,
@@ -1203,9 +1220,10 @@ class IdentityClearedEventProcessor(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('IdentityClearedEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_IDENTITY_CLEARED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1224,7 +1242,7 @@ class IdentityKilledEventProcessor(EventProcessor):
                 self.event.attributes[1]['type'] == 'Balance':
 
             identity_audit = IdentityAudit(
-                account_id=self.event.attributes[0]['value'].replace('0x', ''),
+                account_id=self.event.attributes[0].replace('0x', ''),
                 block_id=self.event.block_id,
                 extrinsic_idx=self.event.extrinsic_idx,
                 event_idx=self.event.event_idx,
@@ -1238,9 +1256,10 @@ class IdentityKilledEventProcessor(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('IdentityKilledEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_IDENTITY_KILLED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1259,8 +1278,8 @@ class IdentityJudgementGivenEventProcessor(EventProcessor):
                 self.event.attributes[1]['type'] == 'RegistrarIndex':
 
             identity_audit = IdentityJudgementAudit(
-                account_id=self.event.attributes[0]['value'].replace('0x', ''),
-                registrar_index=self.event.attributes[1]['value'],
+                account_id=self.event.attributes[0].replace('0x', ''),
+                registrar_index=self.event.attributes[1],
                 block_id=self.event.block_id,
                 extrinsic_idx=self.event.extrinsic_idx,
                 event_idx=self.event.event_idx,
@@ -1278,9 +1297,10 @@ class IdentityJudgementGivenEventProcessor(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
+        print('IdentityJudgementGivenEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_IDENTITY_JUDGEMENT_GIVEN,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1291,9 +1311,10 @@ class IdentityJudgementRequested(EventProcessor):
     event_id = 'JudgementRequested'
 
     def process_search_index(self, db_session):
+        print('IdentityJudgementRequested.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_IDENTITY_JUDGEMENT_REQUESTED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1304,9 +1325,10 @@ class IdentityJudgementUnrequested(EventProcessor):
     event_id = 'JudgementUnrequested'
 
     def process_search_index(self, db_session):
+        print('IdentityJudgementUnrequested.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_IDENTITY_JUDGEMENT_UNREQUESTED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1320,7 +1342,7 @@ class CouncilNewTermEventProcessor(EventProcessor):
     def sequencing_hook(self, db_session, parent_block, parent_sequenced_block):
 
         new_member_ids = [
-            member_struct['account'].replace('0x', '') for member_struct in self.event.attributes[0]['value']
+            member_struct['account'].replace('0x', '') for member_struct in self.event.attributes[0]
         ]
 
         Account.query(db_session).filter(
@@ -1337,7 +1359,8 @@ class CouncilNewTermEventProcessor(EventProcessor):
 
     def process_search_index(self, db_session):
 
-        for member_struct in self.event.attributes[0]['value']:
+        for member_struct in self.event.attributes[0]:
+            print('CouncilNewTermEventProcessor.process_search_index', member_struct, member_struct['account'])
             search_index = self.add_search_index(
                 index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_ELECTED,
                 account_id=member_struct['account'].replace('0x', ''),
@@ -1353,10 +1376,10 @@ class CouncilMemberKicked(EventProcessor):
     event_id = 'MemberKicked'
 
     def process_search_index(self, db_session):
-
+        print('CouncilMemberKicked.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_COUNCIL_MEMBER_KICKED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1368,10 +1391,10 @@ class CouncilMemberRenounced(EventProcessor):
     event_id = 'MemberRenounced'
 
     def process_search_index(self, db_session):
-
+        print('CouncilMemberRenounced.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_COUNCIL_CANDIDACY_RENOUNCED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1383,9 +1406,10 @@ class CouncilProposedEventProcessor(EventProcessor):
     event_id = 'Proposed'
 
     def process_search_index(self, db_session):
+        print('CouncilProposedEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_COUNCIL_PROPOSED,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1397,9 +1421,10 @@ class CouncilVotedEventProcessor(EventProcessor):
     event_id = 'Voted'
 
     def process_search_index(self, db_session):
+        print('CouncilVotedEventProcessor.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_COUNCIL_VOTE,
-            account_id=self.event.attributes[0]['value'].replace('0x', '')
+            account_id=self.event.attributes[0].replace('0x', '')
         )
 
         search_index.save(db_session)
@@ -1442,10 +1467,11 @@ class StakingBonded(EventProcessor):
     event_id = 'Bonded'
 
     def process_search_index(self, db_session):
+        print('StakingBonded.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_STAKING_BONDED,
-            account_id=self.event.attributes[0]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[1]['value']
+            account_id=self.event.attributes[0].replace('0x', ''),
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -1457,10 +1483,11 @@ class StakingUnbonded(EventProcessor):
     event_id = 'Unbonded'
 
     def process_search_index(self, db_session):
+        print('StakingUnbonded.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_STAKING_UNBONDED,
-            account_id=self.event.attributes[0]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[1]['value']
+            account_id=self.event.attributes[0].replace('0x', ''),
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -1472,10 +1499,11 @@ class StakingWithdrawn(EventProcessor):
     event_id = 'Withdrawn'
 
     def process_search_index(self, db_session):
+        print('StakingWithdrawn.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_STAKING_WITHDRAWN,
-            account_id=self.event.attributes[0]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[1]['value']
+            account_id=self.event.attributes[0].replace('0x', ''),
+            sorting_value=self.event.attributes[1]
         )
 
         search_index.save(db_session)
@@ -1486,10 +1514,11 @@ class ClaimsClaimed(EventProcessor):
     event_id = 'Claimed'
 
     def process_search_index(self, db_session):
+        print('ClaimsClaimed.process_search_index', self.event.attributes, self.event.attributes[0])
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_CLAIMS_CLAIMED,
-            account_id=self.event.attributes[0]['value'].replace('0x', ''),
-            sorting_value=self.event.attributes[2]['value']
+            account_id=self.event.attributes[0].replace('0x', ''),
+            sorting_value=self.event.attributes[2]
         )
 
         search_index.save(db_session)
