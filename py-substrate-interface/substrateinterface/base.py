@@ -785,6 +785,7 @@ class SubstrateInterface:
     def implements_scaleinfo(self) -> Optional[bool]:
         if self.metadata_decoder:
             return self.metadata_decoder.portable_registry is not None
+        return False
 
     def get_chain_head(self):
         """

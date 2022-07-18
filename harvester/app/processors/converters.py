@@ -78,8 +78,7 @@ class PolkascanHarvesterService(BaseService):
         self.substrate = SubstrateInterface(
             url=settings.SUBSTRATE_RPC_URL,
             type_registry=custom_type_registry,
-            type_registry_preset=type_registry,
-            runtime_config=RuntimeConfiguration()
+            type_registry_preset=type_registry
         )
         self.metadata_store = {}
 

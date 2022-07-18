@@ -45,6 +45,9 @@ def load_type_registry_preset(name: str, use_remote_preset: bool = False) -> Opt
     if name not in SUPPORTED_TYPE_REGISTRY_PRESETS:
         raise ValueError(f'Unsupported type registry preset "{name}"')
 
+    # Fix: Always use local
+    use_remote_preset = False
+
     if use_remote_preset is True:
         result = requests.get(f'{ONLINE_BASE_URL}{name}.json')
 

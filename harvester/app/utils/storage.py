@@ -38,6 +38,9 @@ def query_storage(pallet_name: str, storage_name: str, substrate: SubstrateInter
         metadata: GenericMetadataVersioned = substrate.get_block_metadata(block_hash)
     else:
         metadata: GenericMetadataVersioned = substrate.metadata_decoder
+    
+    # init runtime, otherwise may get errors like `NotImplementedError: Decoder class for "scale_info::0" not found`
+    substrate.init_runtime(block_hash=block_hash)
 
     module: GenericPalletMetadata = metadata.get_metadata_pallet(pallet_name)
     storage_func: GenericStorageEntryMetadata = module.get_storage_function(storage_name)

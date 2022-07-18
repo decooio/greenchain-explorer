@@ -298,6 +298,9 @@ class AccountBlockProcessor(BlockProcessor):
         except ValueError as e:
             print("ValueError: {}".format(e))
             pass
+        except NotImplementedError as e:
+            print("NotImplementedError: {}. Block: ${}".format(e, self.block.hash))
+            raise
 
 
 class AccountIndexBlockProcessor(BlockProcessor):

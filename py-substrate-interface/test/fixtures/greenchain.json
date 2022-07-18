@@ -1,0 +1,22 @@
+{
+  "runtime_id": 100,
+  "types": {
+    "RawAuraPreDigest": {
+      "type": "struct",
+      "type_mapping": [
+        [
+          "slot_number",
+          "u64"
+        ]
+      ]
+    }
+  },
+  "versioning": [
+    {
+      "runtime_range": [100, null],
+      "types": {
+
+      }
+    }
+  ]
+}

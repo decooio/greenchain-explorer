@@ -46,13 +46,18 @@ pip3 install alembic
 alembic revision -m "[message]"
 ```
 
-## Add custom types for Substrate Node Template
+## Run test cases
+```bash
+cd py-substrate-interface
+pip3 install -r ./requirements.txt
+pip3 install ../py-scale-codec
+python3 -m unittest ./test/test_greenchain.py
+```
 
-* Modify `harvester/app/type_registry/substrate-node-template.json` to match the introduced types of the custom chain
-* Truncate `runtime` and `runtime_*` tables on database
-* Start harvester
-* Check http://127.0.0.1:8080/node-template/runtime-type if all type are now correctly supported
-* Monitor http://127.0.0.1:8080/node-template/harvester/admin if blocks are being processed and try to restart by pressing "Process blocks in harvester queue" if process is interupted.
+## Troubleshooting
+
+### Sequence task hung (Finalized block count not increasing)
+Delete row with key `SEQUENCER_TASK_ID` in table `harvester_status`.
 
 ## Cleanup Docker
 Use the following commands with caution to cleanup your Docker environment.
@@ -148,7 +153,6 @@ docker-compose -p greenchain -f docker-compose.greenchain.local.yml up --build
 * Harvester Task Monitor: http://127.0.0.1:5555
 * GreenChain JS Apps: http://127.0.0.1:8081
 
-## Other networks
+## Other deployment script
 
-* GreenChain Local Node: Use `docker-compose.greenchain.local.yml`
-* GreenChain Test Node: Use `docker-compose.greenchain-test.yml`
+* `docker-compose.greenchain.local.prod.yml`: Prod deployment

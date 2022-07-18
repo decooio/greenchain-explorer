@@ -161,6 +161,8 @@ class RuntimeConfigurationObject:
         ScaleType
         """
         decoder_class = self.get_decoder_class(type_string)
+        # if type_string.startswith('scale_info::'):
+            # print('create_scale_object, type_string: {}, decoder_class: {}'.format(type_string, decoder_class))
 
         if decoder_class:
             return decoder_class(data=data, **kwargs)
@@ -168,7 +170,6 @@ class RuntimeConfigurationObject:
         raise NotImplementedError('Decoder class for "{}" not found'.format(type_string))
 
     def clear_type_registry(self):
-
         if not self.__initial_state:
             self.type_registry = {'types': {}}
 
@@ -481,15 +482,17 @@ class RuntimeConfigurationObject:
 
             if decoder_class:
                 self.type_registry['types'][type_string] = decoder_class
+                # print('update_from_scale_info_types, type_string: {}, decoder_class: {}'.format(type_string, decoder_class))
 
                 if len(scale_info_type['type'].value.get('path', [])) > 0:
                     path_string = '::'.join(scale_info_type['type'].value['path']).lower()
                     self.type_registry['types'][path_string] = decoder_class
+                    # print('update_from_scale_info_types, path_string: {}, decoder_class: {}'.format(path_string, decoder_class))
 
     def add_portable_registry(self, metadata: 'GenericMetadataVersioned', prefix=None):
 
         scale_info_types = metadata.portable_registry.value_object['types'].value_object
-
+        # print('add_portable_registry, scale_info_types', scale_info_types)
         self.update_from_scale_info_types(scale_info_types, prefix=prefix)
 
         # Todo process extrinsic types
