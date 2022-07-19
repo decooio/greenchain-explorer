@@ -140,7 +140,6 @@ def ss58_encode(address: Union[str, bytes], ss58_format: int = 42):
 
     return base58.b58encode(input_bytes + checksum[:checksum_length]).decode()
 
-
 def ss58_encode_account_index(account_index, address_type=42):
 
     if 0 <= account_index <= 2**8 - 1:
@@ -155,7 +154,6 @@ def ss58_encode_account_index(account_index, address_type=42):
         raise ValueError("Value too large for an account index")
 
     return ss58_encode(account_idx_encoder.encode(account_index).data, address_type)
-
 
 def ss58_decode_account_index(address, valid_address_type=42):
 
@@ -197,3 +195,12 @@ def is_valid_ss58_address(value: str, valid_ss58_format: Optional[int] = None) -
         return False
 
     return True
+
+def get_account_id_and_ss58_address(value: str, address_type: Optional[int] = None):
+    if is_valid_ss58_address(value, address_type):
+        ss58_address = value
+        hex_account_id = ss58_decode(value)
+    else:
+        hex_account_id = value
+        ss58_address = ss58_encode(value)
+    return hex_account_id, ss58_address

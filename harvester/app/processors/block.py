@@ -31,7 +31,7 @@ from substrateinterface.utils.hasher import blake2_256
 from app.models.data import Log, AccountAudit, Account, AccountIndexAudit, AccountIndex, \
     SessionValidator, IdentityAudit, IdentityJudgementAudit, IdentityJudgement, SearchIndex, AccountInfoSnapshot
 
-from app.utils.ss58 import ss58_encode, ss58_encode_account_index, ss58_decode, is_valid_ss58_address
+from app.utils.ss58 import ss58_encode, ss58_encode_account_index, get_account_id_and_ss58_address
 from scalecodec.base import ScaleBytes, RuntimeConfiguration
 
 from app.processors.base import BlockProcessor
@@ -271,8 +271,7 @@ class AccountBlockProcessor(BlockProcessor):
                 SearchIndex.block_id == self.block.id,
                 SearchIndex.account_id.notin_(db_session.query(Account.id))
         ).distinct():
-            hex_account_id = search_index.account_id if not is_valid_ss58_address(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE)
-            print('AccountBlockProcessor.sequencing_hook', search_index, hex_account_id)
+            hex_account_id, ss58_address = get_account_id_and_ss58_address(search_index.account_id, settings.SUBSTRATE_ADDRESS_TYPE)
             account = Account(
                 id=hex_account_id,
                 address=ss58_encode(hex_account_id, settings.SUBSTRATE_ADDRESS_TYPE),

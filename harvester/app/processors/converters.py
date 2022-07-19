@@ -38,7 +38,7 @@ from scalecodec.type_registry import load_type_registry_file
 from substrateinterface import SubstrateInterface, logger
 from substrateinterface.exceptions import SubstrateRequestException
 from substrateinterface.utils.hasher import xxh128
-from app.utils.ss58 import ss58_decode, is_valid_ss58_address
+from app.utils.ss58 import ss58_decode, get_account_id_and_ss58_address
 
 from app.models.data import Extrinsic, Block, Event, Runtime, RuntimeModule, RuntimeCall, RuntimeCallParam, \
     RuntimeEvent, RuntimeEventAttribute, RuntimeType, RuntimeStorage, BlockTotal, RuntimeConstant, AccountAudit, \
@@ -187,11 +187,10 @@ class PolkascanHarvesterService(BaseService):
             # Update sudo key
             sudo_key = utils.query_storage(pallet_name="Sudo", storage_name="Key", substrate=self.substrate,
                                 block_hash=block.hash).value
-            if is_valid_ss58_address(sudo_key):
-                sudo_key = ss58_decode(sudo_key)
+            hex_account_id, ss58_address = get_account_id_and_ss58_address(sudo_key, settings.SUBSTRATE_ADDRESS_TYPE)
 
             account_audit = AccountAudit(
-                account_id=sudo_key.replace('0x', ''),
+                account_id=hex_account_id,
                 block_id=block.id,
                 extrinsic_idx=None,
                 event_idx=None,
@@ -621,9 +620,9 @@ class PolkascanHarvesterService(BaseService):
             extrinsic_success = extrinsic_success_idx.get(extrinsic_idx, False)
 
             value = extrinsic.value
-            print(value)
-            print("=====extrinsic.value=====")
-            print(extrinsic.value_object)
+            # print(value)
+            # print("=====extrinsic.value=====")
+            # print(extrinsic.value_object)
             era = None
             if 'era' in value:
                 era = ','.join(map(str, value.get('era')))
@@ -639,8 +638,6 @@ class PolkascanHarvesterService(BaseService):
             if 'address' in value:
                 version_info = '84'
                 address = value.get('address').replace('0x', '')
-                # Ensure `address` is in hex format
-                # address = address if not is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(address, settings.SUBSTRATE_ADDRESS_TYPE)
             if extrinsic_hash is not None:
                 extrinsic_hash = extrinsic_hash[2:]  # replace '0x'
 
@@ -686,14 +683,12 @@ class PolkascanHarvesterService(BaseService):
                     block.count_extrinsics_signedby_index += 1
 
                 # Add search index for signed extrinsics
-                # Ensure `account_id` is in hex format
-                account_id = model.address if not is_valid_ss58_address(model.address, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(model.address, settings.SUBSTRATE_ADDRESS_TYPE)
-                print('PolkascanHarvesterService.add_block', model.address, account_id)
+                hex_account_id, ss58_address = get_account_id_and_ss58_address(model.address, settings.SUBSTRATE_ADDRESS_TYPE)
                 search_index = SearchIndex(
                     index_type_id=settings.SEARCH_INDEX_SIGNED_EXTRINSIC,
                     block_id=block.id,
                     extrinsic_idx=model.extrinsic_idx,
-                    account_id=account_id
+                    account_id=hex_account_id
                 )
                 search_index.save(self.db_session)
 

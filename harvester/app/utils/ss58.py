@@ -197,3 +197,12 @@ def is_valid_ss58_address(value: str, valid_ss58_format: Optional[int] = None) -
         return False
 
     return True
+
+def get_account_id_and_ss58_address(value: str, address_type: Optional[int] = None):
+    if is_valid_ss58_address(value, address_type):
+        ss58_address = value
+        hex_account_id = ss58_decode(value)
+    else:
+        hex_account_id = value
+        ss58_address = ss58_encode(value)
+    return hex_account_id, ss58_address

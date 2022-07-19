@@ -18,7 +18,7 @@
 #
 #  base.py
 from app import settings
-from app.utils.ss58 import is_valid_ss58_address, ss58_decode
+from app.utils.ss58 import get_account_id_and_ss58_address
 from app.models.data import SearchIndex, BlockTotal, Block, Event, Extrinsic
 from substrateinterface import SubstrateInterface
 
@@ -145,9 +145,7 @@ class EventProcessor(Processor):
         self.sequenced_block = sequenced_block
 
     def add_search_index(self, index_type_id, account_id=None, sorting_value=None):
-        # Ensure `account_id` is in hex format
-        hex_account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
-        print('EventProcessor.add_search_index', account_id, hex_account_id)
+        hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
         return SearchIndex(
             index_type_id=index_type_id,
             block_id=self.block.id,
@@ -172,9 +170,7 @@ class ExtrinsicProcessor(Processor):
         self.substrate = substrate
 
     def add_search_index(self, index_type_id, account_id=None, sorting_value=None):
-        # Ensure `account_id` is in hex format
-        hex_account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
-        print('ExtrinsicProcessor.add_search_index', account_id, hex_account_id)
+        hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
         return SearchIndex(
             index_type_id=index_type_id,
             block_id=self.block.id,

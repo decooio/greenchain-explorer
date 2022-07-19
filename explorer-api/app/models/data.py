@@ -25,7 +25,7 @@ from sqlalchemy.dialects.mysql import LONGTEXT
 
 from app import settings
 from app.models.base import BaseModel
-from app.utils.ss58 import ss58_encode, ss58_decode, ss58_encode, is_valid_ss58_address
+from app.utils.ss58 import ss58_encode, ss58_encode, get_account_id_and_ss58_address
 from app.settings import LOG_TYPE_AUTHORITIESCHANGE, SUBSTRATE_ADDRESS_TYPE
 
 class Account(BaseModel):
@@ -362,13 +362,8 @@ class Extrinsic(BaseModel):
 
         if obj_dict['attributes'].get('address'):
             address = obj_dict['attributes']['address']
-            if is_valid_ss58_address(address, settings.SUBSTRATE_ADDRESS_TYPE):
-                ss58_address = address
-                hex_address = ss58_decode(address)
-            else:
-                hex_address = address
-                ss58_address = ss58_encode(address)
-            obj_dict['attributes']['address_id'] = hex_address.replace('0x', '')
+            hex_account_id, ss58_address = get_account_id_and_ss58_address(address, SUBSTRATE_ADDRESS_TYPE)
+            obj_dict['attributes']['address_id'] = hex_account_id.replace('0x', '')
             obj_dict['attributes']['address'] = ss58_address
 
         for item in obj_dict['attributes'].get('params', []):
@@ -376,16 +371,19 @@ class Extrinsic(BaseModel):
             if item['type'] in ['Address', 'AccountId'] and item['value']:
                 self.format_address(item)
             elif item['type'] in ['LookupSource'] and item['value']:
-                # SS58 format AccountId public keys
-                item['orig_value'] = item['value'].replace('0x', '')
-                item['value'] = ss58_encode(item['value'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE)
+                value = item['value'].replace('0x', '')
+                hex_account_id, ss58_address = get_account_id_and_ss58_address(value, SUBSTRATE_ADDRESS_TYPE)
+                item['orig_value'] = hex_account_id
+                item['value'] = ss58_address
             elif item['type'] in ['Vec<Address>', 'Vec<AccountId>', 'Vec<<Lookup as StaticLookup>::Source>'] and item['value']:
                 for idx, vec_item in enumerate(item['value']):
+                    value = vec_item.replace('0x', '')
+                    hex_account_id, ss58_address = get_account_id_and_ss58_address(value, SUBSTRATE_ADDRESS_TYPE)
                     item['value'][idx] = {
                         'name': idx,
                         'type': 'Address',
-                        'value': ss58_encode(vec_item.replace('0x', ''), SUBSTRATE_ADDRESS_TYPE),
-                        'orig_value': vec_item.replace('0x', '')
+                        'value': ss58_address,
+                        'orig_value': hex_account_id
                     }
             elif item['type'] == 'Box<Proposal>':
                 for proposal_param in item['value'].get('call_args', []):
@@ -393,9 +391,11 @@ class Extrinsic(BaseModel):
                         self.format_address(proposal_param)
         if obj_dict['attributes']['contract_message']:
             for item in obj_dict['attributes']['contract_message'].get('args', []):
-                if item['name'] in ['from', 'to'] and item['value'].startswith('0x'):
-                    item['orig_value'] = item['value'].replace('0x', '')
-                    item['value'] = ss58_encode(item['value'].replace('0x', ''), SUBSTRATE_ADDRESS_TYPE)
+                if item['name'] in ['from', 'to'] and item['value']:
+                    value = item['value']
+                    hex_account_id, ss58_address = get_account_id_and_ss58_address(value, SUBSTRATE_ADDRESS_TYPE)
+                    item['orig_value'] = hex_account_id
+                    item['value'] = ss58_address
         return obj_dict
 
 

@@ -38,7 +38,7 @@ from scalecodec.exceptions import RemainingScaleBytesNotEmptyException
 from substrateinterface import SubstrateInterface, ContractEvent, ContractMetadata, \
     ContractInstance as SubstrateContractInterface, Keypair 
 from substrateinterface.exceptions import StorageFunctionNotFound
-from app.utils.ss58 import ss58_encode, is_valid_ss58_address, ss58_decode
+from app.utils.ss58 import ss58_encode, get_account_id_and_ss58_address, ss58_decode
 
 
 class NewSessionEventProcessor(EventProcessor):
@@ -626,16 +626,16 @@ class SystemNewAccountEventProcessor(EventProcessor):
     event_id = 'NewAccount'
 
     def accumulation_hook(self, db_session):
-
+        print('SystemNewAccountEventProcessor.accumulation_hook', self.event.attributes)
         # Check event requirements
-        if len(self.event.attributes) == 1 and \
-                (self.event.attributes[0]['type'] == 'AccountId' or self.event.attributes[0]['type'] == 'T::AccountId'):
-            account_id = self.event.attributes[0].replace('0x', '')
+        if self.event.attributes:
+            account_id = self.event.attributes
+            hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
 
-            self.block._accounts_new.append(account_id)
+            self.block._accounts_new.append(hex_account_id)
 
             account_audit = AccountAudit(
-                account_id=account_id,
+                account_id=hex_account_id,
                 block_id=self.event.block_id,
                 extrinsic_idx=self.event.extrinsic_idx,
                 event_idx=self.event.event_idx,
@@ -649,10 +649,12 @@ class SystemNewAccountEventProcessor(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
-        print('SystemNewAccountEventProcessor.process_search_index', self.event.attributes[0], self.event.attributes, self.event)
+        print('SystemNewAccountEventProcessor.process_search_index', self.event.attributes)
+        account_id = self.event.attributes
+        hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_CREATED,
-            account_id=self.event.attributes.replace('0x', '')
+            account_id=hex_account_id
         )
 
         search_index.save(db_session)
@@ -664,6 +666,7 @@ class ReapedAccount(EventProcessor):
 
     def accumulation_hook(self, db_session):
         # Check event requirements
+        # TODO: Double check `self.event.attributes` structure when `balances.ReapedAccount` event is indexed
         if len(self.event.attributes) == 1 and \
                 self.event.attributes[0]['type'] == 'AccountId':
 
@@ -677,13 +680,12 @@ class ReapedAccount(EventProcessor):
         else:
             raise ValueError('Event doensn\'t meet requirements')
 
-        # Ensure `account_id` is in hex format
-        account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+        hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
 
-        self.block._accounts_reaped.append(account_id)
+        self.block._accounts_reaped.append(hex_account_id)
 
         account_audit = AccountAudit(
-            account_id=account_id,
+            account_id=hex_account_id,
             block_id=self.event.block_id,
             extrinsic_idx=self.event.extrinsic_idx,
             event_idx=self.event.event_idx,
@@ -696,7 +698,7 @@ class ReapedAccount(EventProcessor):
 
         new_account_index_audit = AccountIndexAudit(
             account_index_id=None,
-            account_id=account_id,
+            account_id=hex_account_id,
             block_id=self.event.block_id,
             extrinsic_idx=self.event.extrinsic_idx,
             event_idx=self.event.event_idx,
@@ -728,18 +730,19 @@ class KilledAccount(EventProcessor):
     event_id = 'KilledAccount'
 
     def accumulation_hook(self, db_session):
+        print('KilledAccount.accumulation_hook', self.event.attributes)
         # Check event requirements
-        if len(self.event.attributes) == 1 and \
-                self.event.attributes[0]['type'] == 'AccountId':
-
-            account_id = self.event.attributes[0].replace('0x', '')
+        # TODO: Double check `self.event.attributes` structure when `system.KilledAccount` event is indexed
+        if self.event.attributes:
+            account_id = self.event.attributes
+            hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
         else:
             raise ValueError('Event doensn\'t meet requirements')
 
-        self.block._accounts_reaped.append(account_id)
+        self.block._accounts_reaped.append(hex_account_id)
 
         account_audit = AccountAudit(
-            account_id=account_id,
+            account_id=hex_account_id,
             block_id=self.event.block_id,
             extrinsic_idx=self.event.extrinsic_idx,
             event_idx=self.event.event_idx,
@@ -754,10 +757,12 @@ class KilledAccount(EventProcessor):
             db_session.delete(item)
 
     def process_search_index(self, db_session):
-        print('KilledAccount.process_search_index', self.event.attributes[0])
+        print('KilledAccount.process_search_index', self.event.attributes)
+        account_id = self.event.attributes
+        hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
         search_index = self.add_search_index(
             index_type_id=settings.SEARCH_INDEX_ACCOUNT_KILLED,
-            account_id=self.event.attributes[0].replace('0x', '')
+            account_id=hex_account_id
         )
 
         search_index.save(db_session)
@@ -771,14 +776,13 @@ class NewAccountIndexEventProcessor(EventProcessor):
     def accumulation_hook(self, db_session):
 
         account_id = self.event.attributes[0].replace('0x', '')
-        # Ensure `account_id` is in hex format
-        account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
+        hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
 
         id = self.event.attributes[1]
 
         account_index_audit = AccountIndexAudit(
             account_index_id=id,
-            account_id=account_id,
+            account_id=hex_account_id,
             block_id=self.event.block_id,
             extrinsic_idx=self.event.extrinsic_idx,
             event_idx=self.event.event_idx,
@@ -800,13 +804,12 @@ class IndexAssignedEventProcessor(EventProcessor):
     def accumulation_hook(self, db_session):
 
         account_id = self.event.attributes[0].replace('0x', '')
-        # Ensure `account_id` is in hex format
-        account_id = account_id if not is_valid_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE) else ss58_decode(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
-        id = self.event.attributes[1]
+        hex_account_id, ss58_address = get_account_id_and_ss58_address(account_id, settings.SUBSTRATE_ADDRESS_TYPE)
 
+        id = self.event.attributes[1]
         account_index_audit = AccountIndexAudit(
             account_index_id=id,
-            account_id=account_id,
+            account_id=hex_account_id,
             block_id=self.event.block_id,
             extrinsic_idx=self.event.extrinsic_idx,
             event_idx=self.event.event_idx,
