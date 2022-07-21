@@ -49,6 +49,8 @@ services:
       - TYPE_REGISTRY_FILE=app/type_registry/greenchain.json
       - SUBSTRATE_ADDRESS_TYPE=42
       - NEW_SESSION_EVENT_HANDLER=True
+      - SUBSTRATE_STORAGE_BALANCE=Account
+      - SUBSTRATE_STORAGE_INDICES=Accounts
       - DINGTALK_ACCESS_TOKEN=${DINGTALK_ACCESS_TOKEN}
       - DINGTALK_SECRET=${DINGTALK_SECRET}
     depends_on:
