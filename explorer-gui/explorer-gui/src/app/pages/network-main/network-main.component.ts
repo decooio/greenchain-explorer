@@ -92,7 +92,8 @@ export class NetworkMainComponent implements OnInit, OnDestroy {
       this.singleNetworkVersion = true;
 
       const network = new Network();
-      network.attributes.api_url_root = environment.jsonApiRootUrl;
+      network.attributes.api_url_root = 'https://harvester-api.greenchain.cc/api/v1';
+      // network.attributes.api_url_root = environment.jsonApiRootUrl;
       network.attributes.name = environment.network.name;
       network.attributes.network_id = environment.network.networkId;
       network.attributes.token_decimals = environment.network.tokenDecimals;

@@ -441,6 +441,7 @@
 		"Chain": "链",
 		"Contracts": "合约",
 		"Dashboard": "控制面板",
+		"CIDQuery":"CID 查询",
 		"Runtime": "运行",
 		"item_Accounts": "账号",
 		"item_Blocks": "区块",
@@ -475,6 +476,7 @@
 		"Page not found": "找不到网页"
 	},
 	"PlaceHolderSearch": "按区块/交易/账户搜索",
+	"CidPlaceHolderSearch":"按CID搜索",
 	"Proposal": {
 		"Call": "操作",
 		"Description": "描述",

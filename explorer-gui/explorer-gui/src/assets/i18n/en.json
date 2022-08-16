@@ -441,6 +441,7 @@
 		"Chain": "Chain",
 		"Contracts": "Contracts",
 		"Dashboard": "Dashboard",
+		"CIDQuery": "CID Query",
 		"Runtime": "Runtime",
 		"item_Accounts": "All accounts",
 		"item_Blocks": "Blocks",
@@ -475,6 +476,8 @@
 		"Page not found": "Page not found"
 	},
 	"PlaceHolderSearch": "Search by block / transaction / account",
+	"CidPlaceHolderSearch":"Please enter CID",
+
 	"Proposal": {
 		"Call": "Call",
 		"Description": "Description",

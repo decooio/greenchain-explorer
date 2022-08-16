@@ -115,6 +115,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   search(): void {
     // Strip whitespace from search text
     this.blockSearchText = this.blockSearchText.trim();
+    console.log(this.networkURLPrefix);
+    
     if (this.blockSearchText !== '') {
       this.router.navigate([this.networkURLPrefix, 'analytics', 'search', this.blockSearchText]);
     }

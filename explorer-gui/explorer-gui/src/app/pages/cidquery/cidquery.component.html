@@ -1,0 +1,29 @@
+<div class="columns">
+  <div class="column is-12">
+    <section class="is-12" id="search">
+      <div class="card">
+        <div class="card-content">
+          <div class="content">
+            <form (ngSubmit)="search()">
+              <div class="control has-icons-left has-icons-right">
+                <input
+                  class="input is-large"
+                  type="text"
+                  [(ngModel)]="cid"
+                  [ngModelOptions]="{ standalone: true }"
+                  [placeholder]="'CidPlaceHolderSearch' | translate"
+                />
+                <span class="icon is-medium is-left">
+                  <i class="fa fa-search"></i>
+                </span>
+                <span class="icon is-medium is-right">
+                  <i *ngIf="cid" class="fa fa-check"></i>
+                </span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
