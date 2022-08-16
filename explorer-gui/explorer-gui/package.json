@@ -23,6 +23,7 @@
     "@angular/router": "^7.2.16",
     "@ngx-translate/core": "^11.0.1",
     "@ngx-translate/http-loader": "^4.0.0",
+    "@polkadot/api": "^9.2.1",
     "angular-highcharts": "^8.0.3",
     "angulartics2": "^7.5.2",
     "base": "^3.0.0",
