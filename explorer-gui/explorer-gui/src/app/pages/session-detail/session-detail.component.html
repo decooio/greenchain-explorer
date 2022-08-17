@@ -55,7 +55,7 @@
                 </header>
                 <div class="card-table">
                     <div class="content">
-                        <app-loading-box *ngIf="session.relationships.validators.loading"></app-loading-box>
+                        <app-loading-box *ngIf="session.relationships.validators.is_loading"></app-loading-box>
                         <table class="table is-fullwidth is-striped" *ngIf="session.relationships.validators.data.length > 0">
                              <thead>
                               <tr>

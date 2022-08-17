@@ -1,4 +1,4 @@
-import { Source, ContractInfo } from './contract.class';
+
 /*
  * Polkascan Explorer GUI
  *

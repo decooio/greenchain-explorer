@@ -39,7 +39,7 @@ export class HarvesterAdminComponent implements OnInit, OnDestroy {
 
   public networkstats$: Observable<Networkstats>;
 
-  public harvesterQueue: Object;
+  public harvesterQueue: any;
   public harvesterQueue$: Observable<Object>;
 
   constructor(

@@ -25,7 +25,7 @@ import {RuntimeCallParam} from './runtime-call-param.class';
 import {Extrinsic} from './extrinsic.class';
 
 export class RuntimeCall extends Resource {
-  public attributes = {
+  public attributes: any = {
     module_id: 'module_id',
     call_id: 'call_id',
     name: 'name',

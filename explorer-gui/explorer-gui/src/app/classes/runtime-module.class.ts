@@ -28,7 +28,7 @@ import {RuntimeConstant} from './runtime-constant.class';
 import {RuntimeError} from './runtime-error.class';
 
 export class RuntimeModule extends Resource {
-  public relationships = {
+  public relationships:any = {
         events: new DocumentCollection<RuntimeEvent>(),
         calls: new DocumentCollection<RuntimeCall>(),
         storage: new DocumentCollection<RuntimeStorage>(),

@@ -24,7 +24,7 @@ import {DocumentCollection, Resource} from 'ngx-jsonapi';
 import {AccountIndex} from './account-index.class';
 
 export class Account extends Resource {
-  public attributes = {
+  public attributes: any = {
     id: 'id',
     address: 'address',
     identity_display: 'identity_display',

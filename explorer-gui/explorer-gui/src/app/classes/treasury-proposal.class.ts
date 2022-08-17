@@ -23,9 +23,9 @@
 import {DocumentCollection, Resource} from 'ngx-jsonapi';
 
 export class TreasuryProposal extends Resource {
-  public attributes = {
+  public attributes:any = {
 
   };
-  public relationships = {
+  public relationships: any = {
   };
 }

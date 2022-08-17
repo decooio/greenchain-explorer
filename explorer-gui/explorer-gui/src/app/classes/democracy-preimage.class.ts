@@ -23,7 +23,7 @@
 import { Resource } from 'ngx-jsonapi';
 
 export class DemocracyPreimage extends Resource {
-  public attributes = {
+  public attributes:any = {
 
   };
 }

@@ -29,7 +29,7 @@ import {Component, Input, OnInit} from '@angular/core';
 })
 export class StructComponent implements OnInit {
 
-  @Input() struct = null;
+  @Input() struct: any[] = null;
   @Input() networkURLPrefix = null;
   @Input() networkTokenDecimals = 0;
   @Input() networkTokenSymbol: string;

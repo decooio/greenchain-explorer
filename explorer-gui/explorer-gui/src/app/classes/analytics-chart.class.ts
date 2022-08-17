@@ -23,7 +23,7 @@
 import { Resource } from 'ngx-jsonapi';
 
 export class AnalyticsChart extends Resource {
-  public attributes = {
+  public attributes: any = {
     data: 'data',
     type: 'type'
   };

@@ -24,7 +24,7 @@ import { Resource } from 'ngx-jsonapi';
 
 export class Networkstats extends Resource {
 
-    public attributes = {
+    public attributes: any = {
         id: 'id',
         total_signed_extrinsics: 'total_signed_extrinsics',
         total_events: 'total_events'

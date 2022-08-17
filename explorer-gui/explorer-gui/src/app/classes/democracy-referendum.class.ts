@@ -25,7 +25,7 @@ import {DemocracyVote} from './democracy-vote.class';
 import {DemocracyPreimage} from './democracy-preimage.class';
 
 export class DemocracyReferendum extends Resource {
-  public attributes = {
+  public attributes:any = {
 
   };
   public relationships = {

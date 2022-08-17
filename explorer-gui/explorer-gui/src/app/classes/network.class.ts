@@ -24,7 +24,7 @@ import { Resource } from 'ngx-jsonapi';
 
 export class Network extends Resource {
 
-    public attributes = {
+    public attributes : any= {
         name: 'name',
         network_id: 'network_id',
         network_type: 'network_type',

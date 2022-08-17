@@ -23,7 +23,7 @@
 import {Resource} from 'ngx-jsonapi';
 
 export class RuntimeCallParam extends Resource {
-  public attributes = {
+  public attributes : any= {
     type: 'type',
     name: 'name',
   };

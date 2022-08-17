@@ -23,7 +23,7 @@
 import { Resource } from 'ngx-jsonapi';
 
 export class CouncilVote extends Resource {
-  public attributes = {
+  public attributes:any = {
 
   };
 }

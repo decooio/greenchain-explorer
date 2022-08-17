@@ -27,7 +27,7 @@ import {Log} from './log.class';
 
 export class Block extends Resource {
 
-    public attributes = {
+    public attributes : any= {
         id: 'id',
         hash: 'hash',
         parent_hash: 'parent_hash',
@@ -38,7 +38,7 @@ export class Block extends Resource {
         runtime_id: 'runtime_id'
     };
 
-    public relationships = {
+    public relationships: any = {
         extrinsics: new DocumentCollection<Extrinsic>(),
         transactions: new DocumentCollection<Extrinsic>(),
         inherents: new DocumentCollection<Extrinsic>(),

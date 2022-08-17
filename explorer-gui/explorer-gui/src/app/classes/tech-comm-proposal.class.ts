@@ -24,7 +24,7 @@ import {DocumentCollection, Resource} from 'ngx-jsonapi';
 import {TechCommProposalVote} from './tech-comm-proposal-vote.class';
 
 export class TechCommProposal extends Resource {
-  public attributes = {
+  public attributes: any = {
 
   };
   public relationships = {

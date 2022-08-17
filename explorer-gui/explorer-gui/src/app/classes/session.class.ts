@@ -25,7 +25,7 @@ import {SessionValidator} from "./session-validator.class";
 import {Block} from "./block.class";
 
 export class Session extends Resource {
-  public attributes = {
+  public attributes:any = {
 
   };
   public relationships = {

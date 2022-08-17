@@ -29,7 +29,7 @@ import {Network} from './classes/network.class';
 import {AppConfigService} from './services/app-config.service';
 import {delay, switchMap} from 'rxjs/operators';
 import {Subscription} from 'rxjs';
-import { Angulartics2GoogleGlobalSiteTag } from 'angulartics2/gst';
+import { Angulartics2GoogleGlobalSiteTag } from 'angulartics2';
 import {environment} from '../environments/environment';
 
 @Component({

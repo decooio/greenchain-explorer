@@ -26,7 +26,7 @@ import {Event} from './event.class';
 
 export class BlockTotal extends Resource {
 
-    public attributes = {
+    public attributes:any = {
 
     };
 }

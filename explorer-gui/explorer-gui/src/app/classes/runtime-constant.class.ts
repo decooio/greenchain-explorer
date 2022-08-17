@@ -23,7 +23,7 @@
 import {Resource} from 'ngx-jsonapi';
 
 export class RuntimeConstant extends Resource {
-  public attributes = {
+  public attributes: any = {
     module_id: 'module_id',
     name: 'name',
   };

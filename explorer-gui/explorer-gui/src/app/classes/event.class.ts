@@ -37,7 +37,7 @@ export interface ContractEvent {
   args: EventArgs[],
 }
 export class Event extends Resource {
-  public attributes = {
+  public attributes: any = {
     block_id: 'block_id',
     module_id: 'module_id',
     event_id: 'event_id',

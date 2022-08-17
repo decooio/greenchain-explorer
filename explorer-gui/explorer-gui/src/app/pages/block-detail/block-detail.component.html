@@ -44,7 +44,7 @@
                           </tr>
                           <tr>
                               <td>{{ 'Block-Detail.Parent hash' | translate }}</td>
-                              <td><a *ngIf="block.id > 0" routerLink="{{ networkURLPrefix }}/block/{{ block.id - 1 }}" class="mobile-hash-format">{{block.attributes.parent_hash}}</a></td>
+                              <td><a *ngIf="blockNum() > 0" routerLink="{{ networkURLPrefix }}/block/{{ blockNum() - 1 }}" class="mobile-hash-format">{{block.attributes.parent_hash}}</a></td>
                           </tr>
                           <tr>
                               <td>{{ 'Block-Detail.State Root' | translate }}</td>

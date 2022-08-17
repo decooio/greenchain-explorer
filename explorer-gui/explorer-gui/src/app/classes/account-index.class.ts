@@ -23,7 +23,7 @@
 import { Resource } from 'ngx-jsonapi';
 
 export class AccountIndex extends Resource {
-  public attributes = {
+  public attributes: any = {
     id: 'id'
   };
 }

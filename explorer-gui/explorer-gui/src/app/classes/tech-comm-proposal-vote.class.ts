@@ -24,10 +24,10 @@ import {DocumentCollection, Resource} from 'ngx-jsonapi';
 import {CouncilVote} from './council-vote.class';
 
 export class TechCommProposalVote extends Resource {
-  public attributes = {
+  public attributes: any = {
 
   };
-  public relationships = {
+  public relationships: any = {
 
   };
 }

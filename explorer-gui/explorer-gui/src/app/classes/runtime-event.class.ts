@@ -25,7 +25,7 @@ import {RuntimeEventAttribute} from './runtime-event-attribute.class';
 import {Event} from './event.class'
 
 export class RuntimeEvent extends Resource {
-  public relationships = {
+  public relationships: any = {
         attributes: new DocumentCollection<RuntimeEventAttribute>(),
         recent_events: new DocumentCollection<Event>()
   };

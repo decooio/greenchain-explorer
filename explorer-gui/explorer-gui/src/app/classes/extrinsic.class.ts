@@ -34,7 +34,7 @@ export interface ContractMessage {
   name: string,
 }
 export class Extrinsic extends Resource {
-  public attributes = {
+  public attributes: any = {
     module_id: 'module_id',
     call_id: 'call_id',
     extrinsic_hash: 'extrinsic_hash',

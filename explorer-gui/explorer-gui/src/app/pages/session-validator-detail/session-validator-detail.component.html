@@ -63,7 +63,7 @@
                 </header>
                 <div class="card-table">
                     <div class="content">
-                        <app-loading-box *ngIf="validator.relationships.nominators.loading"></app-loading-box>
+                        <app-loading-box *ngIf="validator.relationships.nominators.is_loading"></app-loading-box>
                         <table class="table is-fullwidth is-striped" *ngIf="validator.relationships.nominators.data.length > 0">
                              <thead>
                               <tr>

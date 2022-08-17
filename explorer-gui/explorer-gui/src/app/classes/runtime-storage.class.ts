@@ -23,7 +23,7 @@
 import {Resource} from 'ngx-jsonapi';
 
 export class RuntimeStorage extends Resource {
-  public attributes = {
+  public attributes:any = {
     module_id: 'module_id',
     name: 'name',
   };

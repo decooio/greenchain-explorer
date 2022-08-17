@@ -24,7 +24,7 @@ import {DocumentCollection, Resource} from 'ngx-jsonapi';
 import {SessionNominator} from './session-nominator.class';
 
 export class SessionValidator extends Resource {
-  public attributes = {
+  public attributes:any = {
 
   };
   public relationships = {

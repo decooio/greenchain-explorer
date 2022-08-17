@@ -136,4 +136,7 @@ export class BlockDetailComponent implements OnInit, OnDestroy {
     this.fragmentSubsription.unsubscribe();
   }
 
+  blockNum(): number{
+    return new Number(this.blockId).valueOf()
+  }
 }
