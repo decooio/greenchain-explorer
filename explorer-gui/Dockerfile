@@ -1,6 +1,6 @@
 ### STAGE 1: Build ###
 # We label our stage as ‘builder’
-FROM node:10-alpine as builder
+FROM node:16.17.0-alpine as builder
 
 COPY explorer-gui/package.json explorer-gui/package-lock.json ./
 
@@ -52,7 +52,7 @@ RUN npm run ng build -- --configuration=${ENV_CONFIG} --output-path=dist
 
 
 ### STAGE 2: Setup ###
-FROM nginx:1.14.1-alpine
+FROM nginx:1.23-alpine
 
 ## Allow for various nginx proxy configuration
 ARG NGINX_CONF=nginx/polkascan-prod.conf
