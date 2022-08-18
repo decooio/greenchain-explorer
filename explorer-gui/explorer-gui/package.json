@@ -46,7 +46,7 @@
     "ngx-timeago": "^2.0.0",
     "ngx-translate-messageformat-compiler": "^5.1.0",
     "ngx-webstorage-service": "^5.0.0",
-    "node-sass": "^4.14.1",
+    "node-sass": "^6.0.1",
     "rxjs": "^7.5.5",
     "set-value": "^3.0.2",
     "tslib": "^1.13.0",
@@ -91,5 +91,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
