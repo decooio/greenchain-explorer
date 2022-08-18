@@ -1,0 +1,33 @@
+.w100{
+    width: 100%;
+}
+.cidItem{
+    border: 1px solid #dbdbdb;
+    border-width: 0 0 1px;
+    padding: 0.5em 0.75em;
+    vertical-align: top;
+    display: block;
+}
+.cid-title{
+    font-size: 1.25em;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+    cursor:pointer;
+    margin-bottom: 0.5em;
+    display: block;
+}
+.cid-title:hover{
+    color: #00a0e9;
+}
+.childCidTitle{
+
+}
+.childCidItem{
+    display: block;
+    margin-bottom: .5em;
+
+}
+.childCidItem::before{
+    content: '.';
+    margin-right: 0.5em;
+}

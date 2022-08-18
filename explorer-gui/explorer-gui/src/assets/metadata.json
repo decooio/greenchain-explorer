@@ -1,0 +1,438 @@
+{
+  "source": {
+    "hash": "0x8bf7533a53ad563b1727ac7eae2d6e1f40d716d11f06f1d15bf36cde89af8f9a",
+    "language": "ink! 3.3.0",
+    "compiler": "rustc 1.64.0-nightly"
+  },
+  "contract": {
+    "name": "green_chain",
+    "version": "0.2.0",
+    "authors": [
+      "[your_name] <[your_email]>"
+    ]
+  },
+  "V3": {
+    "spec": {
+      "constructors": [
+        {
+          "args": [],
+          "docs": [],
+          "label": "new",
+          "payable": false,
+          "selector": "0x9bae9d5e"
+        }
+      ],
+      "docs": [],
+      "events": [
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "account",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "cids",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [],
+          "label": "UserCids"
+        },
+        {
+          "args": [
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "parent_cid",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "docs": [],
+              "indexed": false,
+              "label": "cids",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [],
+          "label": "PdfCids"
+        }
+      ],
+      "messages": [
+        {
+          "args": [
+            {
+              "label": "account_id",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            },
+            {
+              "label": "cids",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [],
+          "label": "add_user_pdf_cid",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0x816268fa"
+        },
+        {
+          "args": [
+            {
+              "label": "account_id",
+              "type": {
+                "displayName": [
+                  "AccountId"
+                ],
+                "type": 1
+              }
+            }
+          ],
+          "docs": [],
+          "label": "get_user_ipfs_cid",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Vec"
+            ],
+            "type": 4
+          },
+          "selector": "0xdf9ff323"
+        },
+        {
+          "args": [
+            {
+              "label": "parent_cid",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            },
+            {
+              "label": "cids",
+              "type": {
+                "displayName": [
+                  "Vec"
+                ],
+                "type": 4
+              }
+            }
+          ],
+          "docs": [],
+          "label": "add_pdf_list",
+          "mutates": true,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Result"
+            ],
+            "type": 8
+          },
+          "selector": "0xb4f38cc2"
+        },
+        {
+          "args": [
+            {
+              "label": "parent_cid",
+              "type": {
+                "displayName": [
+                  "String"
+                ],
+                "type": 5
+              }
+            }
+          ],
+          "docs": [],
+          "label": "get_pdf_cid",
+          "mutates": false,
+          "payable": false,
+          "returnType": {
+            "displayName": [
+              "Vec"
+            ],
+            "type": 4
+          },
+          "selector": "0x99abaa1e"
+        }
+      ]
+    },
+    "storage": {
+      "struct": {
+        "fields": [
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "ty": 0
+              }
+            },
+            "name": "ipfs_cids"
+          },
+          {
+            "layout": {
+              "cell": {
+                "key": "0x0100000000000000000000000000000000000000000000000000000000000000",
+                "ty": 7
+              }
+            },
+            "name": "pdf_to_cids"
+          }
+        ]
+      }
+    },
+    "types": [
+      {
+        "id": 0,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 6,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 1
+            },
+            {
+              "name": "V",
+              "type": 4
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 1,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_env",
+            "types",
+            "AccountId"
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "type": {
+          "def": {
+            "array": {
+              "len": 32,
+              "type": 3
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "type": {
+          "def": {
+            "primitive": "u8"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "type": {
+          "def": {
+            "sequence": {
+              "type": 5
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "type": {
+          "def": {
+            "primitive": "str"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "type": 2,
+                  "typeName": "[u8; 32]"
+                }
+              ]
+            }
+          },
+          "path": [
+            "ink_primitives",
+            "Key"
+          ]
+        }
+      },
+      {
+        "id": 7,
+        "type": {
+          "def": {
+            "composite": {
+              "fields": [
+                {
+                  "name": "offset_key",
+                  "type": 6,
+                  "typeName": "Key"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "K",
+              "type": 5
+            },
+            {
+              "name": "V",
+              "type": 4
+            }
+          ],
+          "path": [
+            "ink_storage",
+            "lazy",
+            "mapping",
+            "Mapping"
+          ]
+        }
+      },
+      {
+        "id": 8,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "fields": [
+                    {
+                      "type": 9
+                    }
+                  ],
+                  "index": 0,
+                  "name": "Ok"
+                },
+                {
+                  "fields": [
+                    {
+                      "type": 10
+                    }
+                  ],
+                  "index": 1,
+                  "name": "Err"
+                }
+              ]
+            }
+          },
+          "params": [
+            {
+              "name": "T",
+              "type": 9
+            },
+            {
+              "name": "E",
+              "type": 10
+            }
+          ],
+          "path": [
+            "Result"
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "type": {
+          "def": {
+            "tuple": []
+          }
+        }
+      },
+      {
+        "id": 10,
+        "type": {
+          "def": {
+            "variant": {
+              "variants": [
+                {
+                  "index": 0,
+                  "name": "NULLCIDS"
+                }
+              ]
+            }
+          },
+          "path": [
+            "green_chain",
+            "green_chain",
+            "Error"
+          ]
+        }
+      }
+    ]
+  }
+}

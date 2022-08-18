@@ -26,6 +26,7 @@
     "@ngx-translate/core": "^14.0.0",
     "@ngx-translate/http-loader": "^7.0.0",
     "@polkadot/api": "^9.2.2",
+    "@polkadot/api-contract": "^9.2.2",
     "angular-highcharts": "^14.1.7",
     "angulartics2": "^12.1.0",
     "base": "^3.0.0",
@@ -59,9 +60,9 @@
     "@angular-eslint/schematics": "^14.0.2",
     "@angular-eslint/template-parser": "^14.0.2",
     "@angular/cli": "^14.1.2",
-    "@polkadot/typegen": "^9.2.2",
     "@angular/compiler-cli": "^14.1.2",
     "@biesbjerg/ngx-translate-extract": "^3.0.5",
+    "@polkadot/typegen": "^9.2.2",
     "@types/google.analytics": "0.0.42",
     "@types/jasmine": "^4.0.3",
     "@types/jasminewd2": "^2.0.10",
@@ -76,5 +77,19 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.0.0",
     "typescript": "^4.7.4"
+  },
+  "browserslist": {
+    "production": [
+      "chrome >= 67",
+      "edge >= 79",
+      "firefox >= 68",
+      "opera >= 54",
+      "safari >= 14"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

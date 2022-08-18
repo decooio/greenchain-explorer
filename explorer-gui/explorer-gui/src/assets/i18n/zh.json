@@ -286,6 +286,11 @@
 		"Status": "状态",
 		"View next": "查看下一个"
 	},
+	"CIDQuery":{
+		"mainCid":"主CID",
+		"thisPdfCid":"本报告CID",
+		"childCidList":"子CID列表"
+	},
 	"DashBoard": {
 		"Active Accounts": "活跃账户",
 		"Age": "块龄",

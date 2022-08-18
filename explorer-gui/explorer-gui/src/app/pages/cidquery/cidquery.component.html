@@ -26,5 +26,63 @@
         </div>
       </div>
     </section>
+    <section class="columns">
+      <div class="card dashboard-card w100">
+        <header class="card-header">
+          <p class="card-header-title">
+            {{ "CIDQuery.thisPdfCid" | translate }}
+          </p>
+        </header>
+
+        <div class="card-table">
+          <div class="content">
+            <table class="table is-fullwidth is-striped">
+              <tbody>
+                <tr class="cidItem">
+                  <a
+                    target="_blank"
+                    href="http://1.116.126.237/ipfs/{{ thisPdfCid }}"
+                    >{{ thisPdfCid }}</a
+                  >
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="columns">
+      <div class="card dashboard-card w100">
+        <header class="card-header">
+          <p class="card-header-title">
+            {{ "CIDQuery.mainCid" | translate }}
+          </p>
+        </header>
+
+        <div class="card-table">
+          <div class="content">
+            <table class="table is-fullwidth is-striped">
+              <tbody>
+                <tr class="cidItem" *ngFor="let cidItem of mainCid">
+                  <span class="cid-title" >{{
+                    cidItem
+                  }}</span>
+                  <div>
+                    <div class="childCidTitle"> {{ "CIDQuery.childCidList" | translate }}</div>
+                    <span
+                      class="childCidItem"
+                      *ngFor="let childCid of childCidList"
+                    >
+                      {{ childCid }}</span
+                    >
+                  </div>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>

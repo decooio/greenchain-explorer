@@ -271,6 +271,10 @@
 		"Status": "Status",
 		"View next": "Ver mais"
 	},
+	"CIDQuery":{
+		"mainCid":"main cid",
+		"childCid":"child cid"
+	},
 	"DashBoard": {
 		"Active Accounts": "Contas ativas",
 		"Age": "Tempo",

@@ -26,7 +26,7 @@
     "suppressImplicitAnyIndexErrors": true,
     "allowUnreachableCode": true,
     "allowJs": true,
-    "target": "es2015",
+    "target": "ES2018",
     "typeRoots": [
       "node_modules/@types", "types"
     ],
@@ -35,11 +35,14 @@
       "dom"
     ],
     "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true,
-  }
+  },
+  
 }

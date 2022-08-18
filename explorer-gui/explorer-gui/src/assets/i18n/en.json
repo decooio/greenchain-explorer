@@ -286,6 +286,11 @@
 		"Status": "Status",
 		"View next": "View next"
 	},
+	"CIDQuery":{
+		"mainCid":"mainCID",
+		"thisPdfCid":"this report CID",
+		"childCidList":"child CID List"
+	},
 	"DashBoard": {
 		"Active Accounts": "Active Accounts",
 		"Age": "Age",
