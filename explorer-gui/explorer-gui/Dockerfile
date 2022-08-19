@@ -1,6 +1,8 @@
 ### STAGE 1: Build ###
 # We label our stage as ‘builder’
-FROM node:16-alpine as builder
+FROM node:16 as builder
+# RUN apk add --no-cache git
+# RUN apk add --no-cache openssh
 
 COPY package.json yarn.lock ./
 
@@ -46,7 +48,7 @@ RUN yarn build --output-path=dist
 
 
 ### STAGE 2: Setup ###
-FROM nginx:1.14.1-alpine
+FROM nginx:1.23-alpine
 
 ## Remove default nginx configs
 RUN rm -rf /etc/nginx/conf.d/*
