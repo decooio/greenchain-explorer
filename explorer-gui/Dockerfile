@@ -1,20 +1,20 @@
 ### STAGE 1: Build ###
 # We label our stage as ‘builder’
-FROM node:16.17.0-alpine as builder
+FROM node:16 as builder
 
-COPY explorer-gui/package.json explorer-gui/package-lock.json ./
+COPY explorer-gui/package.json explorer-gui/yarn.lock ./
 
 # Install python2 & make & g++ &... for node-sass rebuild
-ENV PYTHONUNBUFFERED=1
-RUN apk add --no-cache python2 && \
-    python -m ensurepip && \
-    rm -r /usr/lib/python*/ensurepip && \
-    pip install --upgrade pip setuptools && \
-    rm -r /root/.cache
-RUN apk --no-cache add make gcc g++ musl-dev binutils autoconf automake libtool pkgconfig check-dev file patch
+# ENV PYTHONUNBUFFERED=1
+# RUN apk add --no-cache python2 && \
+#     python -m ensurepip && \
+#     rm -r /usr/lib/python*/ensurepip && \
+#     pip install --upgrade pip setuptools && \
+#     rm -r /root/.cache
+# RUN apk --no-cache add make gcc g++ musl-dev binutils autoconf automake libtool pkgconfig check-dev file patch
 
 ## Storing node modules on a separate layer will prevent unnecessary npm installs at each build
-RUN npm ci && mkdir /ng-app && mv ./node_modules ./ng-app
+RUN yarn --frozen-lockfile && mkdir /ng-app && mv ./node_modules ./ng-app
 
 WORKDIR /ng-app
 
@@ -48,8 +48,7 @@ ENV NETWORK_TOKEN_DECIMALS=$NETWORK_TOKEN_DECIMALS
 ARG NETWORK_COLOR_CODE=d32e79
 ENV NETWORK_COLOR_CODE=$NETWORK_COLOR_CODE
 
-RUN npm run ng build -- --configuration=${ENV_CONFIG} --output-path=dist
-
+RUN yarn build --output-path=dist
 
 ### STAGE 2: Setup ###
 FROM nginx:1.23-alpine

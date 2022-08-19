@@ -21,16 +21,18 @@
  */
 
 export const environment = {
-  production: true,
+  production: false,
+  // jsonApiDiscoveryRootUrl: 'https://discovery-31.polkascan.io',
   jsonApiDiscoveryRootUrl: null,
-  jsonApiRootUrl: $ENV.API_URL,
+  jsonApiRootUrl: 'https://explorer.greenchain.cc/api/v1',
+  // jsonApiRootUrl: 'http://localhost:8080/api/v1',
   network: {
-    name: $ENV.NETWORK_NAME,
-    networkId: $ENV.NETWORK_ID,
-    networkType: $ENV.NETWORK_TYPE,
-    chainType: $ENV.CHAIN_TYPE,
-    tokenSymbol: $ENV.NETWORK_TOKEN_SYMBOL,
-    tokenDecimals: $ENV.NETWORK_TOKEN_DECIMALS,
-    colorCode: $ENV.NETWORK_COLOR_CODE
+    name: 'GreenChain',
+    networkId: 'greenchain',
+    networkType: 'pre',
+    chainType: 'para',
+    tokenSymbol: 'GRN',
+    tokenDecimals: 18,
+    colorCode: '777777'
   }
 };
